@@ -17,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        if (Str::contains(request()->url(), 'ngrok-free.app')) {
+        if (Str::contains(request()->url(), 'ngrok')) {
             URL::forceScheme('https');
         }
     }

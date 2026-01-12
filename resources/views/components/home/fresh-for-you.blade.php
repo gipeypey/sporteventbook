@@ -8,7 +8,7 @@
 <section class="bg-[#F6F8FA] px-4 pt-6 pb-6">
     <div class="flex items-center justify-between mb-3">
         <div>
-            <div class="font-semibold text-lg text-[#111223] leading-snug">Fresh For You</div>
+            <div class="font-semibold text-lg text-[#111223] leading-snug">New Event</div>
             <div class="text-[#A6ACAF] text-sm font-normal leading-tight">Jadikan tantangan berarti</div>
         </div>
         <button
