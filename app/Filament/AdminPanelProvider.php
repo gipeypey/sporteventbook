@@ -27,7 +27,7 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandName('MESQUITE')
+            ->brandName('SportEventBook')
             ->brandLogo(asset('assets/images/medal.png'))
             ->brandLogoHeight('2rem')
             ->favicon(asset('assets/images/medal.png'))
