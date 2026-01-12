@@ -1,0 +1,30 @@
+/* MESQUITE Admin Panel - Simple Theme */
+
+/* Primary Colors */
+:root {
+    --primary-color: #f97316; /* orange-500 */
+    --primary-hover: #ea580c; /* orange-600 */
+}
+
+/* Basic Overrides */
+.fi-btn[Color="primary"],
+.fi-btn.primary,
+.fi-ac-btn[Color="primary"],
+.fi-ac-btn.primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.fi-btn[Color="primary"]:hover,
+.fi-btn.primary:hover,
+.fi-ac-btn[Color="primary"]:hover,
+.fi-ac-btn.primary:hover {
+    background-color: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
+}
+
+/* Brand Logo */
+.fi-sidebar-brand {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}
