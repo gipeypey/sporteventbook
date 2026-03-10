@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Enums\PaymentStatus;
 use App\Models\Booking;
 use BackedEnum;
 use Filament\Pages\Page;
@@ -53,7 +54,7 @@ class TicketScanner extends Page
                 }
             }
 
-            if ($booking->payment_status !== 'success') {
+            if ($booking->payment_status !== PaymentStatus::SUCCESS) {
                 return [
                     'success' => false,
                     'message' => 'Ticket belum dibayar!',
@@ -99,7 +100,7 @@ class TicketScanner extends Page
             'event_name' => $booking->event->title ?? 'N/A',
             'event_date' => $booking->event->date ?? 'N/A',
             'venue_name' => $booking->event->venue->name ?? 'N/A',
-            'payment_status' => ucfirst($booking->payment_status),
+            'payment_status' => $booking->payment_status?->label() ?? ucfirst($booking->payment_status),
         ];
     }
 }

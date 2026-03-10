@@ -2,9 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\PromoCode;
+use Illuminate\Database\Seeder;
 
 class PromoCodeSeeder extends Seeder
 {
@@ -13,50 +12,74 @@ class PromoCodeSeeder extends Seeder
      */
     public function run(): void
     {
-        $promoCodes = [
-            [
-                'code' => 'WELCOME10',
-                'name' => 'Welcome Discount',
-                'description' => '10% discount for new users',
-                'type' => 'percentage',
-                'value' => 10,
-                'minimum_amount' => 100000,
-                'usage_limit' => 100,
-                'used_count' => 0,
-                'starts_at' => now(),
-                'expires_at' => now()->addMonths(3),
-                'is_active' => true,
-            ],
-            [
-                'code' => 'MARATHON50',
-                'name' => 'Marathon Special',
-                'description' => 'Rp 50,000 discount for marathon events',
-                'type' => 'fixed',
-                'value' => 50000,
-                'minimum_amount' => 200000,
-                'usage_limit' => 50,
-                'used_count' => 0,
-                'starts_at' => now(),
-                'expires_at' => now()->addMonths(2),
-                'is_active' => true,
-            ],
-            [
-                'code' => 'EARLY20',
-                'name' => 'Early Bird',
-                'description' => '20% discount for early registration',
-                'type' => 'percentage',
-                'value' => 20,
-                'minimum_amount' => 150000,
-                'usage_limit' => 30,
-                'used_count' => 0,
-                'starts_at' => now(),
-                'expires_at' => now()->addMonth(),
-                'is_active' => true,
-            ],
-        ];
+        // Early Bird Discount
+        PromoCode::create([
+            'code' => 'EARLYBIRD20',
+            'name' => 'Early Bird Discount',
+            'description' => 'Diskon 20% untuk pendaftaran early bird',
+            'type' => 'percentage',
+            'value' => 20,
+            'minimum_amount' => 100000,
+            'usage_limit' => 50,
+            'starts_at' => now(),
+            'expires_at' => now()->addDays(30),
+            'is_active' => true,
+        ]);
 
-        foreach ($promoCodes as $promoCode) {
-            PromoCode::create($promoCode);
-        }
+        // Fixed Discount
+        PromoCode::create([
+            'code' => 'RUNNER50K',
+            'name' => 'Runner Discount 50K',
+            'description' => 'Diskon Rp 50.000 untuk semua pelari',
+            'type' => 'fixed',
+            'value' => 50000,
+            'minimum_amount' => 150000,
+            'usage_limit' => 100,
+            'starts_at' => now(),
+            'expires_at' => now()->addDays(60),
+            'is_active' => true,
+        ]);
+
+        // First Time Runner
+        PromoCode::create([
+            'code' => 'FIRSTTIME',
+            'name' => 'First Time Runner',
+            'description' => 'Diskon khusus untuk pelari pertama kali',
+            'type' => 'percentage',
+            'value' => 15,
+            'minimum_amount' => 0,
+            'usage_limit' => null, // unlimited
+            'starts_at' => now(),
+            'expires_at' => now()->addDays(90),
+            'is_active' => true,
+        ]);
+
+        // VIP Runner
+        PromoCode::create([
+            'code' => 'VIPRUNNER',
+            'name' => 'VIP Runner',
+            'description' => 'Diskon khusus VIP members',
+            'type' => 'percentage',
+            'value' => 30,
+            'minimum_amount' => 200000,
+            'usage_limit' => 20,
+            'starts_at' => now(),
+            'expires_at' => now()->addDays(45),
+            'is_active' => true,
+        ]);
+
+        // Free Shipping (Insurance)
+        PromoCode::create([
+            'code' => 'FREESHIP',
+            'name' => 'Free Insurance',
+            'description' => 'Gratis asuransi untuk booking',
+            'type' => 'fixed',
+            'value' => 25000,
+            'minimum_amount' => 100000,
+            'usage_limit' => 200,
+            'starts_at' => now(),
+            'expires_at' => now()->addDays(120),
+            'is_active' => true,
+        ]);
     }
 }

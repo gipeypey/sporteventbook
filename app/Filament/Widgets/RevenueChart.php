@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\PaymentStatus;
 use App\Models\Booking;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
@@ -21,7 +22,8 @@ class RevenueChart extends ChartWidget
         $months = collect(range(5, 0))->map(function ($month) use ($user) {
             $date = Carbon::now()->subMonths($month);
 
-            $query = Booking::where('payment_status', 'success')
+            $query = Booking::with(['event.venue'])
+                ->where('payment_status', PaymentStatus::SUCCESS)
                 ->whereYear('created_at', $date->year)
                 ->whereMonth('created_at', $date->month);
 

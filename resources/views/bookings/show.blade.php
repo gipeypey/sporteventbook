@@ -59,7 +59,7 @@
                                     <div class="flex-1">
                                         <p class="text-[#9BA4A6] text-sm font-normal">Booking</p>
                                         <p class="text-[#06071C] text-base font-bold">
-                                            {{ ucfirst($booking->payment_status) }}
+                                            {{ $booking->payment_status?->label() ?? 'Unknown' }}
                                         </p>
                                     </div>
                                 </div>
@@ -120,7 +120,7 @@
                     <!-- Divider -->
                     <div class="border-t border-dashed border-[#E4E5E9] mb-4"></div>
 
-                    @if ($booking->payment_status === 'pending')
+                    @if ($booking->payment_status?->value === 'pending')
                         <!-- Large Icon -->
                         <div class="flex justify-center mb-4">
                             <div class="w-[50px] h-[50px] bg-gray-100 rounded-full flex items-center justify-center">

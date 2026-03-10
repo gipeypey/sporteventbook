@@ -18,6 +18,11 @@ Route::get('/event/booking/{slug}/information', [BookingController::class, 'info
 Route::post('/event/booking/{slug}/information/save', [BookingController::class, 'saveInformation'])->name('bookings.information.save');
 Route::get('/event/booking/{slug}/checkout', [BookingController::class, 'checkout'])->name('bookings.checkout');
 Route::post('/event/booking/{slug}/payment', [BookingController::class, 'payment'])->name('bookings.payment');
+
+// Promo code routes
+Route::post('/event/booking/{slug}/apply-promo', [BookingController::class, 'applyPromoCode'])->name('bookings.apply-promo');
+Route::post('/event/booking/{slug}/remove-promo', [BookingController::class, 'removePromoCode'])->name('bookings.remove-promo');
+
 Route::get('/booking-finished', [BookingController::class, 'finished'])->name('bookings.finished');
 
 Route::get('/check-booking', [BookingController::class, 'check'])->name('bookings.check');

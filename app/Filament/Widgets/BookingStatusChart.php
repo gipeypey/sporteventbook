@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\PaymentStatus;
 use App\Models\Booking;
 use Filament\Widgets\ChartWidget;
 
@@ -17,10 +18,10 @@ class BookingStatusChart extends ChartWidget
     {
         $user = auth()->user();
 
-        $pendingQuery = Booking::where('payment_status', 'pending');
-        $successQuery = Booking::where('payment_status', 'success');
-        $cancelledQuery = Booking::where('payment_status', 'cancelled');
-        $failedQuery = Booking::where('payment_status', 'failed');
+        $pendingQuery = Booking::where('payment_status', PaymentStatus::PENDING);
+        $successQuery = Booking::where('payment_status', PaymentStatus::SUCCESS);
+        $cancelledQuery = Booking::where('payment_status', PaymentStatus::CANCELED);
+        $failedQuery = Booking::where('payment_status', PaymentStatus::FAILED);
 
         if ($user && $user->isVenueOwner()) {
             $pendingQuery->whereHas('event.venue', fn($q) => $q->where('user_id', $user->id));
@@ -41,7 +42,7 @@ class BookingStatusChart extends ChartWidget
                     'backgroundColor' => ['#f59e0b', '#10b981', '#ef4444', '#6b7280'],
                 ],
             ],
-            'labels' => ['Pending', 'Success', 'Cancelled', 'Failed'],
+            'labels' => ['Pending', 'Success', 'Canceled', 'Failed'],
         ];
     }
 

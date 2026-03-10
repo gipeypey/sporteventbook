@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Enums\PaymentStatus;
 use App\Models\Booking;
 use App\Models\Event;
 use App\Models\EventCategory;
@@ -133,7 +134,8 @@ class DashboardStats extends BaseWidget
         $user = auth()->user();
 
         if ($user && $user->isVenueOwner()) {
-            $count = Booking::where('payment_status', 'pending')
+            $count = Booking::with(['event.venue'])
+                ->where('payment_status', PaymentStatus::PENDING)
                 ->whereHas('event.venue', function ($q) use ($user) {
                     $q->where('user_id', $user->id);
                 })->count();
@@ -144,7 +146,7 @@ class DashboardStats extends BaseWidget
                 ->color('danger');
         }
 
-        return Stat::make('Pending Bookings', Booking::where('payment_status', 'pending')->count())
+        return Stat::make('Pending Bookings', Booking::where('payment_status', PaymentStatus::PENDING)->count())
             ->description('Awaiting confirmation')
             ->descriptionIcon('heroicon-m-clock')
             ->color('danger');

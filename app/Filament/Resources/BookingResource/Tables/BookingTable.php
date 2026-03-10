@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\BookingResource\Tables;
 
+use App\Enums\PaymentStatus;
 use App\Models\Event;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -43,25 +44,23 @@ class BookingTable
                 Tables\Columns\TextColumn::make('payment_status')
                     ->label('Payment')
                     ->badge()
-                    ->color(fn(string $state): string => match ($state) {
-                        'pending' => 'warning',
-                        'success' => 'success',
-                        'failed' => 'danger',
-                        'expired' => 'gray',
-                        'canceled' => 'gray',
-                        'unknown' => 'gray',
-                        'completed' => 'info',
+                    ->color(fn (PaymentStatus|string|null $state): string => match ($state) {
+                        PaymentStatus::PENDING, 'pending' => 'warning',
+                        PaymentStatus::SUCCESS, 'success' => 'success',
+                        PaymentStatus::FAILED, 'failed' => 'danger',
+                        PaymentStatus::EXPIRED, 'expired' => 'gray',
+                        PaymentStatus::CANCELED, 'canceled' => 'gray',
+                        PaymentStatus::UNKNOWN, 'unknown' => 'gray',
                         default => 'gray',
                     })
-                    ->formatStateUsing(fn(string $state): string => match ($state) {
-                        'pending' => 'Pending',
-                        'success' => 'Success',
-                        'failed' => 'Failed',
-                        'expired' => 'Expired',
-                        'canceled' => 'Canceled',
-                        'unknown' => 'Unknown',
-                        'completed' => 'Completed',
-                        default => $state,
+                    ->formatStateUsing(fn (PaymentStatus|string|null $state): string => match ($state) {
+                        PaymentStatus::PENDING => 'Pending',
+                        PaymentStatus::SUCCESS => 'Success',
+                        PaymentStatus::FAILED => 'Failed',
+                        PaymentStatus::EXPIRED => 'Expired',
+                        PaymentStatus::CANCELED => 'Canceled',
+                        PaymentStatus::UNKNOWN => 'Unknown',
+                        default => ucfirst($state ?? 'unknown'),
                     }),
                 Tables\Columns\IconColumn::make('is_checked_in')
                     ->label('Checked In')
@@ -97,15 +96,7 @@ class BookingTable
             ->filters([
                 Tables\Filters\SelectFilter::make('payment_status')
                     ->label('Payment Status')
-                    ->options([
-                        'pending' => 'Pending',
-                        'success' => 'Success',
-                        'failed' => 'Failed',
-                        'expired' => 'Expired',
-                        'canceled' => 'Canceled',
-                        'unknown' => 'Unknown',
-                        'completed' => 'Completed',
-                    ])
+                    ->options(PaymentStatus::options())
                     ->multiple(),
                 Tables\Filters\SelectFilter::make('is_checked_in')
                     ->label('Check-in Status')

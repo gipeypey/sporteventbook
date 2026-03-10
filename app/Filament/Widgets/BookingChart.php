@@ -21,7 +21,8 @@ class BookingChart extends ChartWidget
         $days = collect(range(6, 0))->map(function ($day) use ($user) {
             $date = Carbon::now()->subDays($day);
 
-            $query = Booking::whereDate('created_at', $date);
+            $query = Booking::with(['event'])
+                ->whereDate('created_at', $date);
 
             if ($user && $user->isVenueOwner()) {
                 $query->whereHas('event.venue', function ($q) use ($user) {

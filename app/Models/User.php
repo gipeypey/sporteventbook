@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use App\Enums\PaymentStatus;
 
 class User extends Authenticatable
 {
@@ -84,7 +85,7 @@ class User extends Authenticatable
             $query->where('user_id', $this->id);
         })
             ->where('is_checked_in', true)
-            ->where('payment_status', 'success')
+            ->where('payment_status', PaymentStatus::SUCCESS)
             ->sum('total');
 
         // Get total withdrawn (approved or completed)

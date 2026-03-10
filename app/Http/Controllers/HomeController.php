@@ -21,7 +21,6 @@ class HomeController extends Controller
             null,
             null,
             true,
-            null,
             $mostPopularLimit
         );
 

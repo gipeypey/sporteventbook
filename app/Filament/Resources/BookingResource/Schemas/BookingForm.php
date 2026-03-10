@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\BookingResource\Schemas;
 
+use App\Enums\PaymentStatus;
 use App\Models\Event;
 use Filament\Forms;
 use Filament\Schemas\Components\Section;
@@ -86,23 +87,10 @@ class BookingForm
     {
         return Forms\Components\Select::make('payment_status')
             ->label('Status Pembayaran')
-            ->options(static::getPaymentStatusOptions())
-            ->default('pending')
+            ->options(PaymentStatus::options())
+            ->default(PaymentStatus::PENDING)
             ->required()
             ->native(false);
-    }
-
-    private static function getPaymentStatusOptions(): array
-    {
-        return [
-            'pending' => 'Menunggu Pembayaran',
-            'success' => 'Pembayaran Terkonfirmasi',
-            'failed' => 'Gagal',
-            'expired' => 'Kadaluarsa',
-            'canceled' => 'Dibatalkan',
-            'unknown' => 'Unknown',
-            'completed' => 'Event Selesai',
-        ];
     }
 
     private static function getPaymentDetailsSection(): Section

@@ -3,4 +3,4 @@
 use App\Http\Controllers\Api\MidtransController;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/midtrans-callback', [MidtransController::class, 'callback']);
+Route::middleware('throttle:30,1')->post('/midtrans-callback', [MidtransController::class, 'callback']);

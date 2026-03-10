@@ -67,10 +67,11 @@ class Withdrawal extends Model
         return $this->status === 'completed';
     }
 
-    // Calculate commission (2%)
+    // Calculate commission (configurable percentage)
     public static function calculateCommission(float $amount): float
     {
-        return round($amount * 0.02, 2);
+        $commissionRate = config('pricing.withdrawal_commission_rate', 2);
+        return round($amount * ($commissionRate / 100), 2);
     }
 
     // Calculate net amount

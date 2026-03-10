@@ -14,7 +14,7 @@ class EventRepository implements EventRepositoryInterface
         ?bool $isFeatured,
         ?int $limit,
     ) {
-        $query = Event::where(function ($query) use ($search, $categoryId, $venueId, $isFeatured) {
+        $query = Event::with(['category', 'venue', 'prizes'])->where(function ($query) use ($search, $categoryId, $venueId, $isFeatured) {
             if ($search) {
                 $query->search($search);
             }
@@ -30,7 +30,7 @@ class EventRepository implements EventRepositoryInterface
             if ($isFeatured) {
                 $query->where('is_featured', $isFeatured);
             }
-        })->with('category', 'venue');
+        });
 
         if ($limit) {
             $query->limit($limit);
@@ -42,7 +42,7 @@ class EventRepository implements EventRepositoryInterface
     public function getBySlug(string $slug)
     {
         return Event::where('slug', $slug)
-            ->with('category', 'venue')
+            ->with(['category', 'venue', 'prizes'])
             ->withCount('bookings')
             ->first();
     }
