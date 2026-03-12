@@ -27,12 +27,70 @@
             {{ $this->getHeaderWidgets() }}
         </div>
 
+        <!-- Chart Filters -->
+        <div class="flex flex-wrap gap-4 mb-4 items-center">
+            <div class="flex items-center gap-2">
+                <label class="text-sm font-medium text-gray-700">Booking Trends:</label>
+                <select 
+                    id="bookingDaysFilter" 
+                    onchange="updateChartDays(this.value)"
+                    class="block w-40 rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+                >
+                    <option value="1">Last 24 Hours</option>
+                    <option value="7" selected>Last 7 Days</option>
+                    <option value="14">Last 14 Days</option>
+                    <option value="30">Last 30 Days</option>
+                </select>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <label class="text-sm font-medium text-gray-700">Revenue:</label>
+                <select 
+                    id="revenueMonthsFilter" 
+                    onchange="updateChartMonths(this.value)"
+                    class="block w-40 rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
+                >
+                    <option value="1">Last Month</option>
+                    <option value="3">Last 3 Months</option>
+                    <option value="6" selected>Last 6 Months</option>
+                </select>
+            </div>
+        </div>
+
         <!-- Charts -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {{ $this->getFooterWidgets() }}
         </div>
     </div>
 </x-filament-panels::page>
+
+<!-- Chart Filter Scripts -->
+<script>
+function updateChartDays(days) {
+    // Dispatch event to update BookingChart
+    window.livewire.dispatch('updateBookingDays', { days: parseInt(days) });
+    
+    // Save preference
+    localStorage.setItem('bookingDaysFilter', days);
+}
+
+function updateChartMonths(months) {
+    // Dispatch event to update RevenueChart
+    window.livewire.dispatch('updateRevenueMonths', { months: parseInt(months) });
+    
+    // Save preference
+    localStorage.setItem('revenueMonthsFilter', months);
+}
+
+// Load saved preferences on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const savedDays = localStorage.getItem('bookingDaysFilter') || '7';
+    const savedMonths = localStorage.getItem('revenueMonthsFilter') || '6';
+    
+    document.getElementById('bookingDaysFilter').value = savedDays;
+    document.getElementById('revenueMonthsFilter').value = savedMonths;
+});
+</script>
 
 <!-- Custom Sidebar Override -->
 <script src="{{ asset('assets/js/filament-dashboard.js') }}" defer></script>

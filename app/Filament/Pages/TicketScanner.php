@@ -4,10 +4,12 @@ namespace App\Filament\Pages;
 
 use App\Enums\PaymentStatus;
 use App\Models\Booking;
+use App\Models\Event;
 use BackedEnum;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
 use UnitEnum;
+use Illuminate\Support\Carbon;
 
 class TicketScanner extends Page
 {
@@ -22,6 +24,62 @@ class TicketScanner extends Page
     protected static ?string $navigationLabel = 'Ticket Scanner';
 
     protected static ?string $title = 'Ticket Scanner';
+
+    public function getCheckInStats(): array
+    {
+        $user = auth()->user();
+        
+        $buildQuery = function ($query) use ($user) {
+            if ($user && $user->isVenueOwner()) {
+                $query->whereHas('event.venue', function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                });
+            }
+            return $query;
+        };
+
+        // Today's check-ins
+        $todayCheckIns = $buildQuery(Booking::query())
+            ->where('is_checked_in', true)
+            ->whereDate('checked_in_at', Carbon::today())
+            ->count();
+
+        // Total check-ins
+        $totalCheckIns = $buildQuery(Booking::query())
+            ->where('is_checked_in', true)
+            ->count();
+
+        // Total successful bookings
+        $totalSuccessful = $buildQuery(Booking::query())
+            ->where('payment_status', PaymentStatus::SUCCESS)
+            ->count();
+
+        // Check-in rate
+        $checkInRate = $totalSuccessful > 0 ? ($totalCheckIns / $totalSuccessful) * 100 : 0;
+
+        // Upcoming events with check-in info
+        $upcomingEvents = Event::where('date', '>=', Carbon::today())
+            ->where('status', 'open')
+            ->withCount([
+                'bookings as total_bookings' => function ($q) {
+                    $q->where('payment_status', PaymentStatus::SUCCESS);
+                },
+                'bookings as checked_in' => function ($q) {
+                    $q->where('payment_status', PaymentStatus::SUCCESS)
+                      ->where('is_checked_in', true);
+                }
+            ])
+            ->orderBy('date', 'asc')
+            ->limit(3)
+            ->get();
+
+        return [
+            'today_check_ins' => $todayCheckIns,
+            'total_check_ins' => $totalCheckIns,
+            'check_in_rate' => $checkInRate,
+            'upcoming_events' => $upcomingEvents->toArray(),
+        ];
+    }
 
     public function validateTicket(string $code, ?string $timezone = null): array
     {

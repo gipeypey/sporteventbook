@@ -36,7 +36,9 @@ class Dashboard extends BaseDashboard
 
     private function getStatsWidgets(): array
     {
-        return [DashboardStats::class];
+        return [
+            DashboardStats::class,
+        ];
     }
 
     private function getChartWidgets(): array

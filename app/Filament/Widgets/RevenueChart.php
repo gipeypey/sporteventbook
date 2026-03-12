@@ -6,6 +6,7 @@ use App\Enums\PaymentStatus;
 use App\Models\Booking;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
+use Livewire\Attributes\On;
 
 class RevenueChart extends ChartWidget
 {
@@ -15,11 +16,70 @@ class RevenueChart extends ChartWidget
 
     protected ?string $maxHeight = '400px';
 
+    protected int $monthsCount = 6;
+
+    protected function getType(): string
+    {
+        return 'bar';
+    }
+
+    protected function getOptions(): array
+    {
+        return [
+            'elements' => [
+                'bar' => [
+                    'borderWidth' => 0,
+                    'borderColor' => 'transparent',
+                    'borderRadius' => 4,
+                ],
+            ],
+            'plugins' => [
+                'legend' => [
+                    'display' => false,
+                ],
+                'tooltip' => [
+                    'callbacks' => [
+                        'label' => 'function(context) { return "Rp " + Number(context.raw).toLocaleString(); }',
+                    ],
+                ],
+            ],
+            'scales' => [
+                'x' => [
+                    'grid' => [
+                        'display' => false,
+                    ],
+                    'ticks' => [
+                        'display' => true,
+                    ],
+                ],
+                'y' => [
+                    'grid' => [
+                        'display' => true,
+                        'color' => '#f0f0f0',
+                    ],
+                    'ticks' => [
+                        'display' => true,
+                        'callback' => 'function(value) { return "Rp " + (value/1000000).toFixed(1) + "M"; }',
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    #[On('updateRevenueMonths')]
+    public function updateMonths(int $months): void
+    {
+        $this->monthsCount = $months;
+        $this->heading = "Revenue (Last {$months} " . ($months === 1 ? 'Month' : 'Months') . ")";
+        $this->dispatch('updateChart');
+    }
+
     protected function getData(): array
     {
         $user = auth()->user();
+        $months = $this->monthsCount;
 
-        $months = collect(range(5, 0))->map(function ($month) use ($user) {
+        $monthsData = collect(range($months - 1, 0))->map(function ($month) use ($user) {
             $date = Carbon::now()->subMonths($month);
 
             $query = Booking::with(['event.venue'])
@@ -43,53 +103,12 @@ class RevenueChart extends ChartWidget
             'datasets' => [
                 [
                     'label' => 'Revenue (Rp)',
-                    'data' => $months->pluck('revenue')->toArray(),
+                    'data' => $monthsData->pluck('revenue')->toArray(),
                     'backgroundColor' => '#10b981',
-                    'borderColor' => '#10b981',
+                    'borderColor' => '#059669',
                 ],
             ],
-            'labels' => $months->pluck('month')->toArray(),
+            'labels' => $monthsData->pluck('month')->toArray(),
         ];
-    }
-
-    protected function getOptions(): array
-    {
-        return [
-            'elements' => [
-                'bar' => [
-                    'borderWidth' => 0,
-                    'borderColor' => 'transparent',
-                ],
-            ],
-            'plugins' => [
-                'legend' => [
-                    'display' => true,
-                ],
-            ],
-            'scales' => [
-                'x' => [
-                    'grid' => [
-                        'display' => false, // hapus garis vertikal grid
-                    ],
-                    'ticks' => [
-                        'display' => true, // tetap tampilkan bulan
-                    ],
-                ],
-                'y' => [
-                    'grid' => [
-                        'display' => false, // hapus garis horizontal grid
-                    ],
-                    'ticks' => [
-                        'display' => true, // tetap tampilkan angka
-                    ],
-                ],
-            ],
-            'spacing' => 0,
-        ];
-    }
-
-    protected function getType(): string
-    {
-        return 'bar';
     }
 }

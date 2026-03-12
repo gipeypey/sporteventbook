@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Actions\ExportBookingsAction;
 use App\Filament\Resources\BookingResource\Pages;
 use App\Filament\Resources\BookingResource\Schemas\BookingForm;
 use App\Filament\Resources\BookingResource\Tables\BookingTable;
@@ -65,6 +66,15 @@ class BookingResource extends Resource
             'index' => Pages\ListBookings::route('/'),
             'create' => Pages\CreateBooking::route('/create'),
             'edit' => Pages\EditBooking::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getNavigationActions(): array
+    {
+        return [
+            ExportBookingsAction::make()
+                ->label('Export Bookings')
+                ->icon('heroicon-o-arrow-down-tray'),
         ];
     }
 }

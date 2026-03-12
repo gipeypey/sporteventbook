@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\Venue;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Support\Carbon;
 
 class DashboardStats extends BaseWidget
 {
@@ -20,20 +21,24 @@ class DashboardStats extends BaseWidget
         if ($user && $user->isVenueOwner()) {
             return [
                 $this->getBalanceStat(),
+                $this->getTodayRevenueStat(),
                 $this->getVenueStat(),
                 $this->getEventStat(),
                 $this->getBookingStat(),
                 $this->getPendingBookingStat(),
+                $this->getSuccessRateStat(),
             ];
         }
 
         return [
             $this->getUserStat(),
+            $this->getTodayRevenueStat(),
+            $this->getMonthRevenueStat(),
             $this->getEventStat(),
             $this->getBookingStat(),
             $this->getVenueStat(),
-            $this->getCategoryStat(),
             $this->getPendingBookingStat(),
+            $this->getSuccessRateStat(),
         ];
     }
 
@@ -50,6 +55,66 @@ class DashboardStats extends BaseWidget
             ->extraAttributes([
                 'class' => 'cursor-pointer hover:opacity-80',
             ]);
+    }
+
+    private function getTodayRevenueStat(): Stat
+    {
+        $user = auth()->user();
+        
+        $query = Booking::whereDate('created_at', Carbon::today())
+            ->where('payment_status', PaymentStatus::SUCCESS);
+        
+        if ($user && $user->isVenueOwner()) {
+            $query->whereHas('event.venue', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+        
+        $todayRevenue = $query->sum('total');
+        
+        // Compare with yesterday
+        $yesterdayQuery = Booking::whereDate('created_at', Carbon::yesterday())
+            ->where('payment_status', PaymentStatus::SUCCESS);
+        
+        if ($user && $user->isVenueOwner()) {
+            $yesterdayQuery->whereHas('event.venue', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+        
+        $yesterdayRevenue = $yesterdayQuery->sum('total');
+        $growth = $yesterdayRevenue > 0 ? (($todayRevenue - $yesterdayRevenue) / $yesterdayRevenue) * 100 : 0;
+
+        $description = $growth >= 0 
+            ? '↑ ' . number_format(abs($growth), 1) . '% vs yesterday' 
+            : '↓ ' . number_format(abs($growth), 1) . '% vs yesterday';
+
+        return Stat::make('Today Revenue', 'Rp ' . number_format($todayRevenue, 0, ',', '.'))
+            ->description($description)
+            ->descriptionIcon($growth >= 0 ? 'heroicon-m-arrow-trending-up' : 'heroicon-m-arrow-trending-down')
+            ->color($growth >= 0 ? 'success' : 'danger');
+    }
+
+    private function getMonthRevenueStat(): Stat
+    {
+        $user = auth()->user();
+        
+        $query = Booking::whereMonth('created_at', Carbon::now()->month)
+            ->whereYear('created_at', Carbon::now()->year)
+            ->where('payment_status', PaymentStatus::SUCCESS);
+        
+        if ($user && $user->isVenueOwner()) {
+            $query->whereHas('event.venue', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+        
+        $monthRevenue = $query->sum('total');
+
+        return Stat::make('This Month', 'Rp ' . number_format($monthRevenue, 0, ',', '.'))
+            ->description('Monthly revenue')
+            ->descriptionIcon('heroicon-m-calendar')
+            ->color('info');
     }
 
     private function getUserStat(): Stat
@@ -96,8 +161,12 @@ class DashboardStats extends BaseWidget
                 ->color('warning');
         }
 
-        return Stat::make('Total Bookings', Booking::count())
-            ->description('Event bookings')
+        // Add today bookings count
+        $todayBookings = Booking::whereDate('created_at', Carbon::today())->count();
+        $totalBookings = Booking::count();
+
+        return Stat::make('Total Bookings', $totalBookings)
+            ->description('Event bookings (' . $todayBookings . ' today)')
             ->descriptionIcon('heroicon-m-ticket')
             ->color('warning');
     }
@@ -150,5 +219,29 @@ class DashboardStats extends BaseWidget
             ->description('Awaiting confirmation')
             ->descriptionIcon('heroicon-m-clock')
             ->color('danger');
+    }
+
+    private function getSuccessRateStat(): Stat
+    {
+        $user = auth()->user();
+        
+        $buildQuery = function ($query) use ($user) {
+            if ($user && $user->isVenueOwner()) {
+                $query->whereHas('event.venue', function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                });
+            }
+            return $query;
+        };
+        
+        $totalBookings = $buildQuery(Booking::query())->count();
+        $successfulBookings = $buildQuery(Booking::where('payment_status', PaymentStatus::SUCCESS))->count();
+        
+        $successRate = $totalBookings > 0 ? ($successfulBookings / $totalBookings) * 100 : 0;
+
+        return Stat::make('Success Rate', number_format($successRate, 1) . '%')
+            ->description($successfulBookings . ' of ' . $totalBookings . ' bookings')
+            ->descriptionIcon('heroicon-m-check-circle')
+            ->color($successRate >= 80 ? 'success' : ($successRate >= 60 ? 'warning' : 'danger'));
     }
 }
