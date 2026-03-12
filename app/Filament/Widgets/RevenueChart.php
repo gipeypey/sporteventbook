@@ -18,6 +18,8 @@ class RevenueChart extends ChartWidget
 
     protected int $monthsCount = 6;
 
+    protected ?int $daysCount = null;
+
     protected function getType(): string
     {
         return 'bar';
@@ -70,13 +72,34 @@ class RevenueChart extends ChartWidget
     public function updateMonths(int $months): void
     {
         $this->monthsCount = $months;
+        $this->daysCount = null;
         $this->heading = "Revenue (Last {$months} " . ($months === 1 ? 'Month' : 'Months') . ")";
+        $this->dispatch('updateChart');
+    }
+
+    #[On('updateRevenueDays')]
+    public function updateDays(int $days): void
+    {
+        $this->daysCount = $days;
+        $this->heading = "Revenue (Last {$days} " . ($days === 1 ? 'Day' : 'Days') . ")";
         $this->dispatch('updateChart');
     }
 
     protected function getData(): array
     {
         $user = auth()->user();
+
+        // Use days-based filtering if set
+        if ($this->daysCount !== null) {
+            return $this->getDaysData($user);
+        }
+
+        // Otherwise use months-based filtering
+        return $this->getMonthsData($user);
+    }
+
+    protected function getMonthsData($user): array
+    {
         $months = $this->monthsCount;
 
         $monthsData = collect(range($months - 1, 0))->map(function ($month) use ($user) {
@@ -109,6 +132,42 @@ class RevenueChart extends ChartWidget
                 ],
             ],
             'labels' => $monthsData->pluck('month')->toArray(),
+        ];
+    }
+
+    protected function getDaysData($user): array
+    {
+        $days = $this->daysCount;
+
+        $daysData = collect(range($days - 1, 0))->map(function ($day) use ($user) {
+            $date = Carbon::now()->subDays($day);
+
+            $query = Booking::with(['event.venue'])
+                ->where('payment_status', PaymentStatus::SUCCESS)
+                ->whereDate('created_at', $date);
+
+            if ($user && $user->isVenueOwner()) {
+                $query->whereHas('event.venue', function ($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                });
+            }
+
+            return [
+                'day' => $date->format('M d'),
+                'revenue' => $query->sum('total'),
+            ];
+        });
+
+        return [
+            'datasets' => [
+                [
+                    'label' => 'Revenue (Rp)',
+                    'data' => $daysData->pluck('revenue')->toArray(),
+                    'backgroundColor' => '#10b981',
+                    'borderColor' => '#059669',
+                ],
+            ],
+            'labels' => $daysData->pluck('day')->toArray(),
         ];
     }
 }

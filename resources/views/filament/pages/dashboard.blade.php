@@ -45,11 +45,13 @@
             
             <div class="flex items-center gap-2">
                 <label class="text-sm font-medium text-gray-700">Revenue:</label>
-                <select 
-                    id="revenueMonthsFilter" 
+                <select
+                    id="revenueMonthsFilter"
                     onchange="updateChartMonths(this.value)"
                     class="block w-40 rounded-lg border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 text-sm"
                 >
+                    <option value="7d">Last 7 Days</option>
+                    <option value="14d">Last 14 Days</option>
                     <option value="1">Last Month</option>
                     <option value="3">Last 3 Months</option>
                     <option value="6" selected>Last 6 Months</option>
@@ -76,19 +78,27 @@ function updateChartDays(days) {
 
 function updateChartMonths(months) {
     // Dispatch event to update RevenueChart
-    window.livewire.dispatch('updateRevenueMonths', { months: parseInt(months) });
+    // Handle day-based filters (7d, 14d) and month-based filters (1, 3, 6)
+    const value = months;
+    const isDays = value.endsWith('d');
+    const paramValue = parseInt(value);
     
-    // Save preference
-    localStorage.setItem('revenueMonthsFilter', months);
+    if (isDays) {
+        window.livewire.dispatch('updateRevenueDays', { days: paramValue });
+        localStorage.setItem('revenueMonthsFilter', value);
+    } else {
+        window.livewire.dispatch('updateRevenueMonths', { months: paramValue });
+        localStorage.setItem('revenueMonthsFilter', value);
+    }
 }
 
 // Load saved preferences on page load
 document.addEventListener('DOMContentLoaded', function() {
     const savedDays = localStorage.getItem('bookingDaysFilter') || '7';
-    const savedMonths = localStorage.getItem('revenueMonthsFilter') || '6';
-    
+    const savedRevenue = localStorage.getItem('revenueMonthsFilter') || '6';
+
     document.getElementById('bookingDaysFilter').value = savedDays;
-    document.getElementById('revenueMonthsFilter').value = savedMonths;
+    document.getElementById('revenueMonthsFilter').value = savedRevenue;
 });
 </script>
 

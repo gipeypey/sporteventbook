@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\BookingResource\Tables;
 
 use App\Enums\PaymentStatus;
+use App\Filament\Actions\ExportBookingsAction;
 use App\Models\Event;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -97,7 +98,14 @@ class BookingTable
                 Tables\Filters\SelectFilter::make('payment_status')
                     ->label('Payment Status')
                     ->options(PaymentStatus::options())
-                    ->multiple(),
+                    ->multiple()
+                    ->query(function ($query, $state) {
+                        if (!isset($state['value']) || !is_array($state['value']) || empty($state['value'])) {
+                            return $query;
+                        }
+                        
+                        return $query->whereIn('payment_status', $state['value']);
+                    }),
                 Tables\Filters\SelectFilter::make('is_checked_in')
                     ->label('Check-in Status')
                     ->options([
@@ -105,9 +113,13 @@ class BookingTable
                         false => 'Not Checked In',
                     ])
                     ->query(function ($query, $state) {
-                        if ($state['value'] === true) {
+                        if (!isset($state['value']) || $state['value'] === '') {
+                            return $query;
+                        }
+                        
+                        if ($state['value'] === true || $state['value'] === 'true') {
                             return $query->where('is_checked_in', true);
-                        } elseif ($state['value'] === false) {
+                        } elseif ($state['value'] === false || $state['value'] === 'false') {
                             return $query->where('is_checked_in', false);
                         }
                     }),
@@ -137,6 +149,9 @@ class BookingTable
                     ->color('danger'),
             ])
             ->toolbarActions([
+                ExportBookingsAction::make()
+                    ->label('Export to Excel')
+                    ->icon('heroicon-o-arrow-down-tray'),
                 BulkActionGroup::make([
                     DeleteBulkAction::make(),
                 ]),

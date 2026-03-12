@@ -51,11 +51,23 @@ class BookingExport extends DefaultValueBinder implements FromView, ShouldAutoSi
         }
 
         if (!empty($this->filters['payment_status'])) {
-            $query->where('payment_status', $this->filters['payment_status']);
+            $paymentStatus = $this->filters['payment_status'];
+            // Handle array or single value
+            if (is_array($paymentStatus)) {
+                $query->whereIn('payment_status', $paymentStatus);
+            } else {
+                $query->where('payment_status', $paymentStatus);
+            }
         }
 
-        if (!empty($this->filters['is_checked_in'])) {
-            $query->where('is_checked_in', $this->filters['is_checked_in']);
+        if (isset($this->filters['is_checked_in']) && $this->filters['is_checked_in'] !== '') {
+            $isCheckedIn = $this->filters['is_checked_in'];
+            // Handle string boolean values
+            if ($isCheckedIn === 'true' || $isCheckedIn === true) {
+                $query->where('is_checked_in', true);
+            } elseif ($isCheckedIn === 'false' || $isCheckedIn === false) {
+                $query->where('is_checked_in', false);
+            }
         }
 
         if (!empty($this->filters['date_from'])) {
