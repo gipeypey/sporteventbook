@@ -7,6 +7,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Queue\SerializesModels;
 
 class BookingTicketMail extends Mailable
@@ -47,6 +48,12 @@ class BookingTicketMail extends Mailable
      */
     public function attachments(): array
     {
-        return [];
+        return [
+            Attachment::fromData(
+                fn () => $this->booking->getInvoicePdfAsString(),
+                'invoice-' . $this->booking->code . '.pdf'
+            )
+            ->withMime('application/pdf'),
+        ];
     }
 }

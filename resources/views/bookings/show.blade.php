@@ -136,8 +136,8 @@
                             Pembayaran masih pending sehingga tiket anda belum bisa kami berikan
                         </p>
                     @else
-                        <!-- QR Code Section -->
-                        <div class="space-y-4">
+                        <!-- QR Code Section - This is what will be downloaded -->
+                        <div id="ticket-to-download" class="space-y-4">
                             <div class="text-center">
                                 <h3 class="text-[#06071C] text-sm font-semibold mb-2">Scan QR Code untuk Check-in</h3>
                                 <p class="text-[#9BA4A6] text-xs">Tunjukkan QR code ini di meja check-in</p>
@@ -155,14 +155,14 @@
 
                             <!-- Download & Share Buttons -->
                             <div class="flex gap-3 mt-4">
-                                <button onclick="downloadTicket()" 
-                                    class="flex-1 bg-[#552BFF] hover:bg-[#4325CC] text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg">
+                                <a href="{{ route('bookings.invoice', $booking->code) }}" 
+                                    class="flex-1 bg-[#552BFF] hover:bg-[#4325CC] text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-md hover:shadow-lg text-center">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                                     </svg>
-                                    Download Ticket
-                                </button>
-                                <button onclick="shareTicket()" 
+                                    Download Invoice
+                                </a>
+                                <button id="share-btn" onclick="shareTicket(this)" 
                                     class="flex-1 bg-[#F6F8FA] hover:bg-gray-100 text-[#06071C] font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all border border-gray-200">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
@@ -209,70 +209,150 @@
         </div>
     </div>
 
-    @push('scripts')
+    @section('scripts')
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
-        function downloadTicket() {
-            const btn = event.target.closest('button');
+        function downloadTicket(btn) {
+            console.log('Download button clicked');
+            if (!btn) {
+                console.error('Button element not found');
+                return;
+            }
+            
+            const ticketCard = document.getElementById('ticket-to-download');
+            if (!ticketCard) {
+                console.error('Ticket card element not found');
+                alert('Ticket element not found!');
+                return;
+            }
+
             const originalText = btn.innerHTML;
             btn.innerHTML = '<svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Generating...';
             btn.disabled = true;
 
-            // Capture the ticket card
-            const ticketCard = document.querySelector('.bg-white.rounded-3xl');
-            
             html2canvas(ticketCard, {
                 scale: 2,
-                backgroundColor: '#F6F8FA',
-                logging: false,
-                useCORS: true
+                backgroundColor: '#FFFFFF',
+                logging: true,
+                useCORS: true,
+                allowTaint: false,
+                windowWidth: ticketCard.scrollWidth,
+                windowHeight: ticketCard.scrollHeight
             }).then(canvas => {
-                // Convert to image and download
-                const link = document.createElement('a');
-                link.download = 'ticket-{{ $booking->code }}.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
+                console.log('Canvas created:', canvas.width, 'x', canvas.height);
                 
-                btn.innerHTML = originalText;
-                btn.disabled = false;
+                // Convert to blob and download
+                canvas.toBlob(blob => {
+                    if (!blob) {
+                        alert('Failed to create image!');
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        return;
+                    }
+                    
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = 'ticket-{{ $booking->code }}.png';
+                    link.href = url;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    
+                    console.log('Ticket downloaded successfully');
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 'image/png');
             }).catch(err => {
                 console.error('Error generating ticket:', err);
-                // Fallback: use print
-                window.print();
+                alert('Failed to generate ticket image: ' + err.message);
                 btn.innerHTML = originalText;
                 btn.disabled = false;
             });
         }
 
-        function shareTicket() {
+        function shareTicket(btn) {
+            console.log('Share button clicked');
+            if (!btn) return;
+
             const bookingCode = '{{ $booking->code }}';
-            const eventName = '{{ $booking->event->title }}';
+            const eventName = `{{ addslashes($booking->event->title) }}`;
             const eventDate = '{{ $booking->event->date->format("d F Y") }}';
+            const participantName = `{{ addslashes($booking->name) }}`;
             
             const shareData = {
-                title: 'My Event Ticket',
-                text: `I'm registered for ${eventName} on ${eventDate}! Booking code: ${bookingCode}`,
+                title: 'My Event Ticket - {{ $booking->code }}',
+                text: `I'm registered for ${eventName} on ${eventDate}! Booking code: ${bookingCode}\nParticipant: ${participantName}`,
                 url: window.location.href
             };
 
+            // Try Web Share API first
             if (navigator.share) {
+                console.log('Using Web Share API');
                 navigator.share(shareData)
                     .then(() => console.log('Shared successfully'))
-                    .catch(console.error);
+                    .catch(err => {
+                        if (err.name !== 'AbortError') {
+                            console.error('Error sharing:', err);
+                            // Fallback to clipboard
+                            fallbackCopy(btn, shareData);
+                        }
+                    });
             } else {
                 // Fallback: copy to clipboard
-                const textToCopy = `${shareData.text}\n\nView ticket: ${shareData.url}`;
-                navigator.clipboard.writeText(textToCopy)
-                    .then(() => {
-                        alert('Link copied to clipboard! You can now paste it anywhere.');
-                    })
-                    .catch(err => {
-                        console.error('Failed to copy:', err);
-                        // Last fallback: select and copy
-                        prompt('Copy this link:', textToCopy);
-                    });
+                console.log('Web Share API not available, using clipboard fallback');
+                fallbackCopy(btn, shareData);
             }
         }
+
+        function fallbackCopy(btn, shareData) {
+            const textToCopy = `${shareData.text}\n\nView ticket: ${shareData.url}`;
+            
+            // Try modern clipboard API first
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(textToCopy)
+                    .then(() => {
+                        showCopiedFeedback(btn);
+                    })
+                    .catch(err => {
+                        console.error('Clipboard API failed:', err);
+                        // Last fallback: use textarea
+                        legacyCopy(textToCopy, btn);
+                    });
+            } else {
+                legacyCopy(textToCopy, btn);
+            }
+        }
+
+        function legacyCopy(text, btn) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            
+            try {
+                document.execCommand('copy');
+                showCopiedFeedback(btn);
+            } catch (err) {
+                console.error('Legacy copy failed:', err);
+                prompt('Copy this link to share:', text);
+            }
+            
+            document.body.removeChild(textarea);
+        }
+
+        function showCopiedFeedback(btn) {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Copied!';
+            btn.disabled = true;
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 2000);
+            console.log('Link copied to clipboard');
+        }
     </script>
-    @endpush
+    @endsection
 @endsection

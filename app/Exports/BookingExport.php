@@ -16,18 +16,13 @@ use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
 use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
-use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\DefaultValueBinder;
 use Maatwebsite\Excel\Events\AfterSheet;
-use PhpOffice\PhpSpreadsheet\Cell\Cell;
-use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
-use PhpOffice\PhpSpreadsheet\Style\Color;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class BookingExport extends DefaultValueBinder implements FromView, ShouldAutoSize, WithColumnWidths, WithEvents, WithStyles
+class BookingExport extends DefaultValueBinder implements FromView, ShouldAutoSize, WithColumnWidths, WithEvents
 {
     use Exportable;
 
@@ -45,12 +40,12 @@ class BookingExport extends DefaultValueBinder implements FromView, ShouldAutoSi
     {
         $query = Booking::with(['event.venue', 'event.category']);
 
-        // Apply filters
-        if (!empty($this->filters['event_id'])) {
+        // Apply filters - use isset() to avoid "Undefined array key" errors
+        if (isset($this->filters['event_id']) && !empty($this->filters['event_id'])) {
             $query->where('event_id', $this->filters['event_id']);
         }
 
-        if (!empty($this->filters['payment_status'])) {
+        if (isset($this->filters['payment_status']) && !empty($this->filters['payment_status'])) {
             $paymentStatus = $this->filters['payment_status'];
             // Handle array or single value
             if (is_array($paymentStatus)) {
@@ -60,25 +55,35 @@ class BookingExport extends DefaultValueBinder implements FromView, ShouldAutoSi
             }
         }
 
-        if (isset($this->filters['is_checked_in']) && $this->filters['is_checked_in'] !== '') {
+        if (isset($this->filters['is_checked_in']) && $this->filters['is_checked_in'] !== '' && $this->filters['is_checked_in'] !== null) {
             $isCheckedIn = $this->filters['is_checked_in'];
             // Handle string boolean values
-            if ($isCheckedIn === 'true' || $isCheckedIn === true) {
+            if ($isCheckedIn === 'true' || $isCheckedIn === true || $isCheckedIn === '1') {
                 $query->where('is_checked_in', true);
-            } elseif ($isCheckedIn === 'false' || $isCheckedIn === false) {
+            } elseif ($isCheckedIn === 'false' || $isCheckedIn === false || $isCheckedIn === '0') {
                 $query->where('is_checked_in', false);
             }
         }
 
-        if (!empty($this->filters['date_from'])) {
-            $query->whereDate('created_at', '>=', $this->filters['date_from']);
+        if (isset($this->filters['date_from']) && !empty($this->filters['date_from'])) {
+            $dateFrom = $this->filters['date_from'];
+            // Handle Carbon objects or strings
+            if (is_object($dateFrom) && method_exists($dateFrom, 'format')) {
+                $dateFrom = $dateFrom->format('Y-m-d');
+            }
+            $query->whereDate('created_at', '>=', $dateFrom);
         }
 
-        if (!empty($this->filters['date_to'])) {
-            $query->whereDate('created_at', '<=', $this->filters['date_to']);
+        if (isset($this->filters['date_to']) && !empty($this->filters['date_to'])) {
+            $dateTo = $this->filters['date_to'];
+            // Handle Carbon objects or strings
+            if (is_object($dateTo) && method_exists($dateTo, 'format')) {
+                $dateTo = $dateTo->format('Y-m-d');
+            }
+            $query->whereDate('created_at', '<=', $dateTo);
         }
 
-        if (!empty($this->filters['search'])) {
+        if (isset($this->filters['search']) && !empty($this->filters['search'])) {
             $search = $this->filters['search'];
             $query->where(function ($q) use ($search) {
                 $q->where('code', 'like', "%{$search}%")
@@ -111,20 +116,23 @@ class BookingExport extends DefaultValueBinder implements FromView, ShouldAutoSi
     public function columnWidths(): array
     {
         return [
-            0 => 15,  // No
-            1 => 20,  // Booking Code
-            2 => 30,  // Event Name
-            3 => 25,  // Customer Name
-            4 => 25,  // Email
-            5 => 20,  // Phone
-            6 => 15,  // Payment Status
-            7 => 15,  // Check-in Status
-            8 => 20,  // Subtotal
-            9 => 20,  // Tax
-            10 => 20, // Discount
-            11 => 20, // Total
-            12 => 25, // Booking Date
-            13 => 25, // Event Date
+            'A' => 10,  // No
+            'B' => 20,  // Booking Code
+            'C' => 30,  // Event Name
+            'D' => 20,  // Category
+            'E' => 25,  // Venue
+            'F' => 25,  // Customer Name
+            'G' => 25,  // Email
+            'H' => 20,  // Phone
+            'I' => 15,  // Payment Status
+            'J' => 15,  // Check-in Status
+            'K' => 20,  // Subtotal
+            'L' => 20,  // Tax
+            'M' => 20,  // Discount
+            'N' => 20,  // Total
+            'O' => 25,  // Booking Date
+            'P' => 25,  // Event Date
+            'Q' => 25,  // Expiry Date
         ];
     }
 
@@ -136,11 +144,28 @@ class BookingExport extends DefaultValueBinder implements FromView, ShouldAutoSi
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet;
-                $highestRow = $sheet->getHighestRow();
-                $highestColumn = $sheet->getHighestColumn();
+                
+                // Get the highest column from the view - we have 17 columns (A-Q)
+                $highestColumn = 'Q';
+                
+                // Add title row first
+                $sheet->insertNewRowBefore(1);
+                $sheet->mergeCells("A1:{$highestColumn}1");
+                $sheet->setCellValue('A1', 'BOOKING REPORT - SPORTEVENTBOOK');
+                $sheet->getStyle('A1')->applyFromArray([
+                    'font' => [
+                        'bold' => true,
+                        'size' => 16,
+                        'color' => ['argb' => 'FF552BFF'],
+                    ],
+                    'alignment' => [
+                        'horizontal' => Alignment::HORIZONTAL_CENTER,
+                        'vertical' => Alignment::VERTICAL_CENTER,
+                    ],
+                ]);
 
-                // Style header row
-                $sheet->getStyle('A1:N1')->applyFromArray([
+                // Style header row (now at row 2 after inserting title row)
+                $sheet->getStyle("A2:{$highestColumn}2")->applyFromArray([
                     'fill' => [
                         'fillType' => Fill::FILL_SOLID,
                         'startColor' => ['argb' => 'FF552BFF'],
@@ -162,25 +187,12 @@ class BookingExport extends DefaultValueBinder implements FromView, ShouldAutoSi
                     ],
                 ]);
 
-                // Add title row
-                $sheet->insertNewRowBefore(1);
-                $sheet->mergeCells('A1:N1');
-                $sheet->setCellValue('A1', 'BOOKING REPORT - SPORTEVENTBOOK');
-                $sheet->getStyle('A1')->applyFromArray([
-                    'font' => [
-                        'bold' => true,
-                        'size' => 16,
-                        'color' => ['argb' => 'FF552BFF'],
-                    ],
-                    'alignment' => [
-                        'horizontal' => Alignment::HORIZONTAL_CENTER,
-                        'vertical' => Alignment::VERTICAL_CENTER,
-                    ],
-                ]);
-
-                // Style data rows
-                if ($highestRow > 1) {
-                    $sheet->getStyle('A3:N' . $highestRow + 1)->applyFromArray([
+                // Get highest row after title is added
+                $highestRow = $sheet->getHighestRow();
+                
+                // Style data rows only if there is data
+                if ($highestRow > 2) {
+                    $sheet->getStyle("A3:{$highestColumn}{$highestRow}")->applyFromArray([
                         'alignment' => [
                             'horizontal' => Alignment::HORIZONTAL_LEFT,
                             'vertical' => Alignment::VERTICAL_CENTER,
@@ -194,31 +206,33 @@ class BookingExport extends DefaultValueBinder implements FromView, ShouldAutoSi
                     ]);
 
                     // Alternate row colors
-                    for ($row = 3; $row <= $highestRow + 1; $row++) {
+                    for ($row = 3; $row <= $highestRow; $row++) {
                         $color = $row % 2 == 0 ? 'FFF6F8FA' : 'FFFFFFFF';
-                        $sheet->getStyle('A' . $row . ':N' . $row)->applyFromArray([
+                        $sheet->getStyle("A{$row}:{$highestColumn}{$row}")->applyFromArray([
                             'fill' => [
                                 'fillType' => Fill::FILL_SOLID,
                                 'startColor' => ['argb' => $color],
                             ],
                         ]);
                     }
-                }
 
-                // Format payment status column with colors
-                for ($row = 3; $row <= $highestRow + 1; $row++) {
-                    $status = $sheet->getCell('G' . $row)->getValue();
-                    $color = $this->getStatusColor($status);
-                    $sheet->getStyle('G' . $row)->applyFromArray([
-                        'font' => [
-                            'color' => ['argb' => $color],
-                            'bold' => true,
-                        ],
-                    ]);
-                }
+                    // Format payment status column (column I) with colors
+                    for ($row = 3; $row <= $highestRow; $row++) {
+                        $status = $sheet->getCell('I' . $row)->getValue();
+                        if ($status !== null && $status !== '') {
+                            $color = $this->getStatusColor((string) $status);
+                            $sheet->getStyle('I' . $row)->applyFromArray([
+                                'font' => [
+                                    'color' => ['argb' => $color],
+                                    'bold' => true,
+                                ],
+                            ]);
+                        }
+                    }
 
-                // Auto-filter
-                $sheet->setAutoFilter('A2:N' . $highestRow + 1);
+                    // Auto-filter
+                    $sheet->setAutoFilter("A2:{$highestColumn}{$highestRow}");
+                }
             },
         ];
     }
@@ -238,32 +252,4 @@ class BookingExport extends DefaultValueBinder implements FromView, ShouldAutoSi
         };
     }
 
-    /**
-     * Apply styles to worksheet
-     */
-    public function styles(Worksheet $sheet)
-    {
-        // Set default font
-        $sheet->getDefaultStyle()->applyFromArray([
-            'font' => [
-                'name' => 'Arial',
-                'size' => 11,
-            ],
-        ]);
-
-        // Center align some columns
-        $sheet->getStyle('A3:A' . ($sheet->getHighestRow()))->applyFromArray([
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
-        ]);
-
-        $sheet->getStyle('G3:H' . ($sheet->getHighestRow()))->applyFromArray([
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
-        ]);
-
-        // Right align currency columns
-        $sheet->getStyle('I3:L' . ($sheet->getHighestRow()))->applyFromArray([
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_RIGHT],
-            'numberformat' => ['format' => '#,##0'],
-        ]);
-    }
 }

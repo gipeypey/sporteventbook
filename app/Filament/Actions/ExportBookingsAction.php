@@ -25,16 +25,10 @@ class ExportBookingsAction extends Action
         $this->label('Export to Excel');
         $this->color('success');
 
-        $this->action(function (): \Symfony\Component\HttpFoundation\BinaryFileResponse {
-            $filename = 'bookings-' . now()->format('Y-m-d-His') . '.xlsx';
-            
-            return Excel::download(new BookingExport([]), $filename);
-        });
-
         $this->modalHeading('Export Bookings');
         $this->modalDescription('Select your export preferences below');
 
-        $this->schema([
+        $this->form([
             \Filament\Forms\Components\Select::make('event_id')
                 ->label('Filter by Event')
                 ->placeholder('All Events')
@@ -78,6 +72,12 @@ class ExportBookingsAction extends Action
                 ->placeholder('Search by name, email, phone, or booking code')
                 ->columnSpanFull(),
         ]);
+
+        $this->action(function (array $data): \Symfony\Component\HttpFoundation\BinaryFileResponse {
+            $filename = 'bookings-' . now()->format('Y-m-d-His') . '.xlsx';
+            
+            return Excel::download(new BookingExport($data), $filename);
+        });
 
         $this->modalSubmitActionLabel('Export');
         $this->modalCancelActionLabel('Cancel');

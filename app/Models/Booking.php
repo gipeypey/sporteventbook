@@ -10,9 +10,12 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\BookingConfirmationMail;
 use App\Mail\BookingTicketMail;
 use App\Mail\PaymentReminderMail;
+use App\Traits\GeneratesInvoicePdf;
 
 class Booking extends Model
 {
+    use GeneratesInvoicePdf;
+
     protected $fillable = [
         'code',
         'event_id',

@@ -9,6 +9,7 @@ use App\Http\Requests\BookingInformationRequest;
 use App\Http\Requests\CheckBookingRequest;
 use App\Models\Booking;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Exception;
 
 class BookingController extends Controller
@@ -221,5 +222,20 @@ class BookingController extends Controller
         $this->bookingRepository->checkAndUpdateExpiredBooking($booking);
 
         return view('bookings.show', compact('booking'));
+    }
+
+    /**
+     * Download invoice PDF
+     */
+    public function downloadInvoice(string $slug)
+    {
+        $booking = $this->bookingRepository->getByCode($slug);
+
+        if (!$booking) {
+            return redirect()->route('bookings.check')
+                ->with('error', 'Booking not found');
+        }
+
+        return $booking->downloadInvoice();
     }
 }

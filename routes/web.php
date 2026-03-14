@@ -28,3 +28,4 @@ Route::get('/booking-finished', [BookingController::class, 'finished'])->name('b
 Route::get('/check-booking', [BookingController::class, 'check'])->name('bookings.check');
 Route::post('/check-booking', [BookingController::class, 'checkBooking'])->name('bookings.check.booking');
 Route::get('/event/booking/{slug}/ticket', [BookingController::class, 'ticket'])->name('bookings.ticket');
+Route::get('/event/booking/{slug}/invoice', [BookingController::class, 'downloadInvoice'])->name('bookings.invoice');
