@@ -103,7 +103,7 @@ class Booking extends Model
             
             // Set expiry time (30 minutes from now, configurable)
             if (empty($booking->expires_at)) {
-                $booking->expires_at = now()->addMinutes(config('pricing.booking_session_expiry', 30));
+                $booking->expires_at = now()->addMinutes((int) config('pricing.booking_session_expiry', 30));
             }
         });
     }

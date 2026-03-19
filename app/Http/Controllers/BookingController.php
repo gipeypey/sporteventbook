@@ -79,7 +79,7 @@ class BookingController extends Controller
         $grandTotal = max(0, $subTotal + $tax + $insurance - $discount);
         
         // Calculate expiry time
-        $expiresAt = now()->addMinutes(config('pricing.booking_session_expiry', 30));
+        $expiresAt = now()->addMinutes((int) config('pricing.booking_session_expiry', 30));
 
         return view('bookings.step-two', [
             'event' => $event,

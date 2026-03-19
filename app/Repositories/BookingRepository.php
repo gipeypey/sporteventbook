@@ -272,7 +272,7 @@ class BookingRepository implements BookingRepositoryInterface
             'promo_code' => $promoData['code'] ?? null,
             'discount' => $discount,
             'final_total' => $grandTotal,
-            'expires_at' => now()->addMinutes(config('pricing.booking_session_expiry', 30)),
+            'expires_at' => now()->addMinutes((int) config('pricing.booking_session_expiry', 30)),
         ]);
 
         // Increment promo usage if used
