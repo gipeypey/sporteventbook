@@ -15,13 +15,13 @@
         <div class="flex gap-5 pb-6 pl-4">
             @foreach ($categories as $category)
                 <a href="{{ route('category.show', $category->slug) }}"
-                    class="rounded-[22px] bg-white border border-gray-200 h-[145px] w-[130px] flex-shrink-0 flex flex-col items-start justify-center p-[14px] transition-colors hover:border-[#FF7A00] cursor-pointer">
+                    class="rounded-[22px] bg-white border border-gray-200 h-[180px] w-[160px] flex-shrink-0 flex flex-col items-center justify-start pt-5 transition-colors hover:border-[#FF7A00] cursor-pointer">
                     <div
-                        class="bg-gray-50 border-0 flex items-center justify-center mb-5 mt-0 circular-icon w-[60px] h-[60px]">
+                        class="bg-gray-50 border-0 flex items-center justify-center mb-4 mt-0 rounded-[16px] w-[80px] h-[80px]">
 
-                        <img src="{{ asset('storage/' . $category->icon) }}" alt="{{ $category->name }}" />
+                        <img src="{{ asset('storage/' . $category->icon) }}" alt="{{ $category->name }}" class="w-[45px] h-[45px] object-contain" />
                     </div>
-                    <div class="text-left">
+                    <div class="text-center px-3">
                         <div class="font-semibold text-base text-[#18192B] leading-tight mb-1">
                             {{ $category->name }}</div>
                         <div class="text-xs text-[#9BA4A6] font-normal leading-tight">
