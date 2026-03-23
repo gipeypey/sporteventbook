@@ -80,12 +80,17 @@ class BookingRepository implements BookingRepositoryInterface
 
     public function saveInformation(array $data)
     {
+        // Get event price to calculate subtotal
+        $event = \App\Models\Event::find($data['event_id']);
+        $subTotal = $event ? $event->price : 0;
+        
         session([
             self::SESSION_KEY => [
                 'event_id' => $data['event_id'],
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'phone' => $data['phone'],
+                'subtotal' => $subTotal,
                 'saved_at' => now()->toIso8601String(),
             ],
         ]);
@@ -167,6 +172,7 @@ class BookingRepository implements BookingRepositoryInterface
             $savedAt = \Carbon\Carbon::parse($bookingData['saved_at']);
             if ($savedAt->diffInMinutes(now()) > $this->getSessionExpiryMinutes()) {
                 $this->clearSession();
+                $this->clearPromoCode();
                 return [
                     'valid' => false,
                     'error' => 'Booking session has expired. Please restart the booking process.',
@@ -176,7 +182,7 @@ class BookingRepository implements BookingRepositoryInterface
         }
 
         // Validate required fields
-        $requiredFields = ['event_id', 'name', 'email', 'phone'];
+        $requiredFields = ['event_id', 'name', 'email', 'phone', 'subtotal'];
         foreach ($requiredFields as $field) {
             if (empty($bookingData[$field])) {
                 return [
@@ -225,6 +231,15 @@ class BookingRepository implements BookingRepositoryInterface
             $bookingData['saved_at'] = now()->toIso8601String();
             session([self::SESSION_KEY => $bookingData]);
         }
+    }
+
+    /**
+     * Get subtotal from session
+     */
+    public function getSessionSubtotal(): float
+    {
+        $bookingData = session(self::SESSION_KEY);
+        return $bookingData['subtotal'] ?? 0;
     }
 
     public function createBooking(Event $event)

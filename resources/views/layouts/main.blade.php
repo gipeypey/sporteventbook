@@ -22,7 +22,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
     <script src="{{ asset('assets/js/home.js') }}" defer></script>
-    <script src="{{ asset('assets/js/payment.js') }}" defer></script>
+    <script src="{{ asset('assets/js/promo-code.js') }}" defer></script>
     <script src="{{ asset('assets/js/e-ticket.js') }}" defer></script>
 
     {{-- Scripts khusus halaman --}}

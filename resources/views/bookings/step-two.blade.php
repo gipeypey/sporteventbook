@@ -1,5 +1,9 @@
 @extends('layouts.main')
 
+@push('head')
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+@endpush
+
 @section('content')
     <div class="bg-[#F6F8FA] min-h-screen">
         <div class="relative flex flex-col w-full max-w-[640px] min-h-screen mx-auto bg-[#F6F8FA] overflow-x-hidden">
@@ -198,8 +202,14 @@
                             <img src="{{ asset('assets/icons/gift.svg') }}" class="w-6 h-6" alt="gift" />
                             <input type="text" id="promo-code" placeholder="Input your promo code"
                                 class="flex-1 text-[#06071C] text-base bg-transparent outline-none placeholder:text-gray-400" />
+                            <button type="button" id="apply-promo-btn" class="bg-[#552BFF] text-white px-4 py-2 rounded-full text-sm font-semibold">
+                                Apply
+                            </button>
                         </div>
                         <div id="promo-message" class="text-sm font-semibold hidden"></div>
+                        <button type="button" id="remove-promo-btn" class="text-red-400 text-sm font-semibold hidden">
+                            Remove Promo Code
+                        </button>
                     </div>
                 </div>
 
@@ -254,4 +264,16 @@
             </div>
         </div>
     </div>
+
+    <script>
+        // Pass PHP variables to JavaScript
+        window.bookingData = {
+            subTotal: {{ $subTotal }},
+            tax: {{ $tax }},
+            insurance: {{ $insurance }},
+            grandTotal: {{ $grandTotal }},
+            applyPromoUrl: "{{ route('bookings.apply-promo', ['slug' => $event->slug]) }}",
+            removePromoUrl: "{{ route('bookings.remove-promo', ['slug' => $event->slug]) }}"
+        };
+    </script>
 @endsection
