@@ -83,8 +83,32 @@ class EventController extends Controller
 
     public function show(string $slug)
     {
-        $event = $this->eventRepository->getBySlug($slug);
+        // Try to find by slug first, then by ID if slug doesn't exist
+        $event = \App\Models\Event::with(['eventCategory', 'venue', 'prizes', 'bookings'])
+            ->withCount('bookings')
+            ->where('slug', $slug)
+            ->first();
+        
+        // If not found by slug, try by ID (for backward compatibility)
+        if (!$event) {
+            $event = \App\Models\Event::with(['eventCategory', 'venue', 'prizes', 'bookings'])
+                ->withCount('bookings')
+                ->find($slug);
+        }
+        
+        // If still not found, abort with 404
+        if (!$event) {
+            abort(404, 'Event not found');
+        }
 
-        return view('events.show', compact('event'));
+        // Get related events (same category, excluding current event)
+        $relatedEvents = \App\Models\Event::with(['eventCategory', 'venue'])
+            ->where('category_id', $event->category_id)
+            ->where('id', '!=', $event->id)
+            ->where('status', 'open')
+            ->limit(3)
+            ->get();
+
+        return view('events.show', compact('event', 'relatedEvents'));
     }
 }

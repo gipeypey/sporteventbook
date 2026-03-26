@@ -17,6 +17,7 @@ class Event extends Model
         'image',
         'is_featured',
         'date',
+        'start_date',
         'status',
         'max_participants',
         'total_prize',
@@ -27,10 +28,19 @@ class Event extends Model
 
     protected $casts = [
         'date' => 'datetime',
+        'start_date' => 'datetime',
         'total_prize' => 'decimal:2',
         'price' => 'decimal:2',
         'is_featured' => 'boolean',
     ];
+
+    /**
+     * Get the start_date attribute (alias for date for compatibility)
+     */
+    public function getStartDateAttribute()
+    {
+        return $this->date ?? $this->attributes['start_date'] ?? null;
+    }
 
     public function scopeSearch($query, $search)
     {
