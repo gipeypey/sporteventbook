@@ -67,22 +67,22 @@ Jika Anda memiliki **Nutanix Database Service (NDB)**, Anda bisa menggunakan MyS
    - Deploy
 
 2. **Dapatkan Connection Details**
-   - Host/IP address dari MySQL instance
+   - Host/IP address dari MySQL instance --> 192.168.2.61
    - Port (default: 3306)
-   - Database name
-   - Username dan password
+   - Database name -> sporteventbook
+   - Username : root (db)/era (os)
 
 3. **Update Kubernetes Secret**
    ```bash
    kubectl create secret generic app-secret \
        --from-literal=APP_KEY="base64:YourAppKey" \
-       --from-literal=DB_HOST="ndb-mysql-ip-address" \
+       --from-literal=DB_HOST="192.168.2.61" \
        --from-literal=DB_PORT="3306" \
        --from-literal=DB_DATABASE="sporteventbook" \
-       --from-literal=DB_USERNAME="sporteventbook" \
-       --from-literal=DB_PASSWORD="YourPassword" \
-       --from-literal=MIDTRANS_SERVER_KEY="SB-Mid-server-xxxxx" \
-       --from-literal=MIDTRANS_CLIENT_KEY="SB-Mid-client-xxxxx" \
+       --from-literal=DB_USERNAME="root" \
+       --from-literal=DB_PASSWORD="P@ssw0rd" \
+       --from-literal=MIDTRANS_SERVER_KEY="Mid-server-QO31L-owEDPoRNuWdLBOyFFx" \
+       --from-literal=MIDTRANS_CLIENT_KEY="Mid-client-duVgQAN4ELE6SarI" \
        -n sporteventbook
    ```
 
