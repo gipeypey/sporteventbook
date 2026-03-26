@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: laravel-scheduler
+  namespace: sporteventbook
+spec:
+  schedule: "* * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: scheduler
+            image: harbor.your-domain.com/sporteventbook/app:latest
+            command:
+            - php
+            - artisan
+            - schedule:run
+            envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secret
+            env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: DB_PASSWORD
+          restartPolicy: OnFailure
+          imagePullSecrets:
+          - name: harbor-secret

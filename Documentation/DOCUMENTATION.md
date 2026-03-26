@@ -13,9 +13,9 @@ SportEventBook adalah platform booking event olahraga yang komprehensif dengan s
 - **PromoCode**: Sistem diskon dengan berbagai jenis
 - **Setting**: Konfigurasi aplikasi
 - **Withdrawal**: Manajemen penarikan dana
-- **News**: Berita dan artikel terbaru (baru)
-- **Sponsor**: Sponsor dan partner (baru)
-- **Runner**: Data runner untuk ranking system (baru)
+- **EventCategory**: Kategori event (Trail Running, Road Race, dll)
+- **EventPrize**: Hadiah tambahan untuk event
+- **BookingStatusHistory**: Riwayat perubahan status booking
 
 ### Fitur Utama
 
@@ -59,21 +59,18 @@ SportEventBook adalah platform booking event olahraga yang komprehensif dengan s
 - Payment reminder emails
 - Template email yang responsif
 
-#### 7. Homepage Redesign (UTMB World Style) - Planned
-- Full-width desktop layout (mengubah dari mobile-first)
-- Navbar horizontal dengan dropdown menu
-- Hero section dengan background HD
-- Events carousel (3-column grid)
-- Ranking section (Top 3 Runners - Men & Women)
-- Latest News section
-- Registration CTA section
-- Sponsors grid
-- Multi-column footer
+#### 7. Event Management
+- CRUD event dengan form terstruktur (Informasi Event, Detail Event, Pendaftaran & Harga, Hadiah Tambahan)
+- Upload gambar event dengan editor (crop, rotate, aspect ratio)
+- Status event (Open, Closed, Ended)
+- Winner management untuk event yang sudah selesai
 
-#### 8. Ranking System - Planned
-- Top 3 World ranking untuk Men dan Women
-- Filter berdasarkan distance (20K, 50K, 100K, 100M)
-- UTMB Index-style scoring
+#### 8. Image Upload & Display
+- Upload gambar event ke `public/assets/images/events/`
+- Upload gambar hadiah ke `public/assets/images/event-prizes/`
+- Image editor dengan aspect ratio presets (16:9, 4:3, 1:1)
+- Auto-generate image URL dengan fallback ke placeholder
+- Support untuk multiple image path formats
 
 ---
 
@@ -142,19 +139,57 @@ SportEventBook adalah platform booking event olahraga yang komprehensif dengan s
 
 ---
 
+## File Structure & Storage
+
+### Image Storage Configuration
+
+**Config Filesystem (`config/filesystems.php`):**
+```php
+'public' => [
+    'driver' => 'local',
+    'root' => public_path('assets/images'),
+    'url' => '/assets/images',
+    'visibility' => 'public',
+],
+```
+
+### Image Directories:
+- `public/assets/images/events/` - Event thumbnails
+- `public/assets/images/event-prizes/` - Prize images
+
+### Event Model - Image URL Accessor
+
+Model Event memiliki accessor `image_url` yang otomatis resolve berbagai format path:
+```php
+// Di Event.php
+public function getImageUrlAttribute(): ?string
+{
+    if (!$this->image) {
+        return null;
+    }
+
+    // Check if it's a full URL
+    if (filter_var($this->image, FILTER_VALIDATE_URL)) {
+        return $this->image;
+    }
+
+    // Check various path formats...
+    // Returns asset() URL or null
+}
+```
+
+**Penggunaan di Blade:**
+```blade
+<img src="{{ $event->image_url }}" alt="{{ $event->title }}">
+```
+
+---
+
 ## Testing
 - Feature tests untuk booking expiry
 - Feature tests untuk Midtrans callback
 - Feature tests untuk promo code functionality
 - Payment status enum tests
-
----
-
-## Deployment
-- Environment configuration (.env.example)
-- Database migration ready
-- Queue worker support
-- File storage configuration
 
 ---
 
@@ -165,7 +200,54 @@ SportEventBook adalah platform booking event olahraga yang komprehensif dengan s
 - **Payment Gateway**: Midtrans
 - **Database**: MySQL
 - **Queue**: Redis/Database
-- **File Storage**: Local/Cloud storage
+- **File Storage**: Local (public disk)
+
+---
+
+## Bug Fixes & Updates
+
+### Maret 2026
+
+#### 1. Fix: Event Image Upload Path
+**Masalah:** Gambar event tidak muncul karena path storage salah.
+
+**Solusi:**
+- Ubah `config/filesystems.php` root ke `public_path('assets/images')`
+- Update EventForm dengan helper text yang jelas
+- Tambahkan accessor `getImageUrlAttribute()` di Event model
+- Update semua view untuk menggunakan `$event->image_url`
+
+**Files Modified:**
+- `config/filesystems.php`
+- `app/Filament/Resources/EventResource/Schemas/EventForm.php`
+- `app/Models/Event.php`
+- `resources/views/events/show.blade.php`
+- `resources/views/events/index.blade.php`
+- `resources/views/components/events-carousel.blade.php`
+
+#### 2. Fix: Status Badge Position
+**Masalah:** Badge "Open Registration" menutupi logo event di halaman show.
+
+**Solusi:** Pindahkan badge dari `top-4 left-4` ke `bottom-6 left-6`
+
+**Files Modified:**
+- `resources/views/events/show.blade.php`
+
+#### 3. Fix: Available Distances Display
+**Masalah:** Section "Available Distances" menampilkan nama hadiah instead of distance.
+
+**Solusi:** Extract distance dari Event Category name menggunakan regex pattern `/(\d+K)/i`
+
+**Files Modified:**
+- `resources/views/events/show.blade.php`
+
+#### 4. Fix: Remove Redundant Location Field
+**Masalah:** Field "Location" di Event Information redundan dengan "Venue".
+
+**Solusi:** Hapus field "Location" dari Event Information card.
+
+**Files Modified:**
+- `resources/views/events/show.blade.php`
 
 ---
 
@@ -197,6 +279,23 @@ SportEventBook adalah platform booking event olahraga yang komprehensif dengan s
 - [ ] Leaderboard ranking
 - [ ] Achievement badges
 - [ ] Performance statistics
+
+---
+
+## Deployment
+
+### Local Development
+1. Clone repository
+2. `composer install`
+3. `npm install && npm run build`
+4. Copy `.env.example` ke `.env`
+5. `php artisan key:generate`
+6. `php artisan migrate --seed`
+7. `php artisan storage:link`
+8. `php artisan serve`
+
+### Production Deployment (Nutanix Kubernetes)
+Lihat: [Kubernetes Deployment Guide](KUBERNETES_DEPLOYMENT.md)
 
 ---
 
