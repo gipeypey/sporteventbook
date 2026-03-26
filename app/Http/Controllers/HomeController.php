@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Interfaces\EventCategoryRepositoryInterface;
 use App\Interfaces\EventRepositoryInterface;
 use App\Models\Setting;
+use App\Models\News;
+use App\Models\Sponsor;
+use App\Models\Runner;
 
 class HomeController extends Controller
 {
@@ -40,6 +43,40 @@ class HomeController extends Controller
             $freshLimit
         );
 
-        return view('home', compact('mostPopularEvents', 'bestCategories', 'freshEvents'));
+        // Get latest news (published)
+        $latestNews = News::where('is_published', true)
+            ->whereNotNull('published_at')
+            ->orderBy('published_at', 'desc')
+            ->take(3)
+            ->get();
+
+        // Get active sponsors ordered by tier and order
+        $sponsors = Sponsor::where('is_active', true)
+            ->orderBy('tier')
+            ->orderBy('order')
+            ->get();
+
+        // Get top runners (Men and Women)
+        $topMen = Runner::where('gender', 'men')
+            ->where('is_active', true)
+            ->orderByDesc('utmb_index_100m')
+            ->take(3)
+            ->get();
+
+        $topWomen = Runner::where('gender', 'women')
+            ->where('is_active', true)
+            ->orderByDesc('utmb_index_100m')
+            ->take(3)
+            ->get();
+
+        return view('home', compact(
+            'mostPopularEvents',
+            'bestCategories',
+            'freshEvents',
+            'latestNews',
+            'sponsors',
+            'topMen',
+            'topWomen'
+        ));
     }
 }

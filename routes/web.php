@@ -9,7 +9,17 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+// Authentication routes
+Route::get('/register', function() {
+    return view('auth.register');
+})->name('register');
+
+Route::get('/login', function() {
+    return view('auth.login');
+})->name('login');
+
 Route::get('/category/{slug}', [CategoryController::class, 'show'])->name('category.show');
+Route::get('/events', [EventController::class, 'index'])->name('events.index');
 Route::get('/browse-events', [EventController::class, 'browse'])->name('events.browse');
 Route::get('/event/{slug}', [EventController::class, 'show'])->name('events.show');
 

@@ -1,27 +1,31 @@
 @extends('layouts.main')
 
+@section('navbar')
+    <x-navbar />
+@endsection
+
 @section('content')
-    <div class="bg-white min-h-screen pb-20">
-        <div class="relative flex flex-col w-full max-w-[640px] min-h-screen mx-auto bg-white overflow-x-hidden">
+    <!-- Hero Section -->
+    <x-hero />
 
-            <!-- HEADER SECTION -->
-            <x-home.header />
+    <!-- Events Carousel Section -->
+    <section id="events">
+        <x-events-carousel :events="$mostPopularEvents" />
+    </section>
 
-            <!-- MOST POPULAR SECTION -->
-            <x-home.most-popular :events="$mostPopularEvents" />
+    <!-- Ranking Section -->
+    <x-ranking :topMen="$topMen" :topWomen="$topWomen" />
 
-            <!-- BEST CATEGORIES SECTION -->
-            <x-home.best-categories :categories="$bestCategories" />
+    <!-- News Section -->
+    <x-news :news="$latestNews" />
 
-            <!-- FRESH FOR YOU SECTION -->
-            <x-home.fresh-for-you :events="$freshEvents" />
+    <!-- Registration CTA Section -->
+    <x-registration-cta />
 
-            <!-- IMPROVE SKILLS SECTION -->
-            <x-home.improve-skills />
+    <!-- Sponsors Section -->
+    <x-sponsors :sponsors="$sponsors" />
+@endsection
 
-            <!-- BOTTOM NAVIGATION BAR -->
-            <x-home.bottom-navigation activeRoute="home" />
-
-        </div>
-    </div>
+@section('footer')
+    <x-footer />
 @endsection

@@ -45,12 +45,22 @@ class Event extends Model
         return $this->belongsTo(EventCategory::class, 'category_id');
     }
 
+    public function eventCategory(): BelongsTo
+    {
+        return $this->belongsTo(EventCategory::class, 'category_id');
+    }
+
     public function venue(): BelongsTo
     {
         return $this->belongsTo(Venue::class);
     }
 
     public function prizes(): HasMany
+    {
+        return $this->hasMany(EventPrize::class);
+    }
+
+    public function eventPrizes(): HasMany
     {
         return $this->hasMany(EventPrize::class);
     }
