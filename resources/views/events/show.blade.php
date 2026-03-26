@@ -166,13 +166,38 @@
                 @endif
                 
                 <!-- Distances -->
-                @if($event->prizes && $event->prizes->count() > 0)
+                @if($event->eventCategory)
                 <div>
                     <h2 class="text-xl font-bold text-gray-900 mb-4">Available Distances</h2>
                     <div class="flex flex-wrap gap-3">
-                        @foreach($event->prizes as $prize)
+                        @php
+                            // Extract distances from category name (e.g., "Trail Running - 30K, 50K, 100K")
+                            $categoryName = $event->eventCategory->name;
+                            $distances = [];
+                            // Try to extract distance patterns like "30K", "50K", "100K" from category name
+                            if (preg_match_all('/(\d+K)/i', $categoryName, $matches)) {
+                                $distances = $matches[1];
+                            }
+                            // If no distances found in category name, show a default based on category
+                            if (empty($distances)) {
+                                // Check if category name contains common distance patterns
+                                if (stripos($categoryName, 'full marathon') !== false || stripos($categoryName, '42k') !== false) {
+                                    $distances = ['42K'];
+                                } elseif (stripos($categoryName, 'half marathon') !== false || stripos($categoryName, '21k') !== false) {
+                                    $distances = ['21K'];
+                                } elseif (stripos($categoryName, '10k') !== false) {
+                                    $distances = ['10K'];
+                                } elseif (stripos($categoryName, '5k') !== false) {
+                                    $distances = ['5K'];
+                                } else {
+                                    // Default: show category name as distance
+                                    $distances = [$categoryName];
+                                }
+                            }
+                        @endphp
+                        @foreach($distances as $distance)
                         <span class="px-4 py-2 bg-violet-50 text-violet-600 rounded-xl font-semibold text-sm">
-                            {{ $prize->distance }}K
+                            {{ $distance }}
                         </span>
                         @endforeach
                     </div>
@@ -207,16 +232,6 @@
                                 @if($event->venue?->address)
                                 <p class="text-xs text-gray-400 mt-1">{{ $event->venue->address }}</p>
                                 @endif
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-start space-x-3">
-                            <svg class="w-5 h-5 text-violet-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                            </svg>
-                            <div>
-                                <p class="text-sm font-medium text-gray-900">Location</p>
-                                <p class="text-sm text-gray-500">{{ $event->venue?->city ?? 'TBA' }}</p>
                             </div>
                         </div>
                         
