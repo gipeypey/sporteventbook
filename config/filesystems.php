@@ -40,9 +40,9 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
+            'root' => public_path('assets/images'),
             // Use relative URL so it works across any local port/host
-            'url' => '/storage',
+            'url' => '/assets/images',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,

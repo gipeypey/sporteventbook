@@ -25,10 +25,8 @@
         <div class="grid lg:grid-cols-2 gap-8">
             <!-- Event Image -->
             <div class="relative rounded-2xl overflow-hidden shadow-xl shadow-gray-200/50 bg-gradient-to-br from-violet-100 to-indigo-100">
-                @if($event->image && filter_var($event->image, FILTER_VALIDATE_URL))
-                <img src="{{ $event->image }}" alt="{{ $event->title }}" class="w-full h-[400px] object-cover" onerror="this.src='https://images.unsplash.com/photo-1552674605-5d28c4e1902c?q=80&w=1000&auto=format&fit=crop'">
-                @elseif($event->image && file_exists(public_path($event->image)))
-                <img src="{{ asset($event->image) }}" alt="{{ $event->title }}" class="w-full h-[400px] object-cover" onerror="this.src='https://images.unsplash.com/photo-1552674605-5d28c4e1902c?q=80&w=1000&auto=format&fit=crop'">
+                @if($event->image_url)
+                <img src="{{ $event->image_url }}" alt="{{ $event->title }}" class="w-full h-[400px] object-cover" onerror="this.src='https://images.unsplash.com/photo-1552674605-5d28c4e1902c?q=80&w=1000&auto=format&fit=crop'">
                 @else
                 <div class="w-full h-[400px] flex items-center justify-center bg-gradient-to-br from-violet-200 to-indigo-200">
                     <svg class="w-24 h-24 text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -38,7 +36,7 @@
                 @endif
                 
                 <!-- Status Badge -->
-                <div class="absolute top-4 left-4">
+                <div class="absolute bottom-6 left-6 z-10">
                     @if($event->status === 'open')
                     <span class="px-4 py-2 bg-green-500 text-white rounded-full text-sm font-semibold shadow-lg">Open Registration</span>
                     @elseif($event->status === 'closed')
@@ -269,10 +267,8 @@
             @foreach($relatedEvents->take(3) as $relatedEvent)
             <a href="{{ route('events.show', $relatedEvent) }}" class="group block bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300 hover:-translate-y-1">
                 <div class="relative h-40 overflow-hidden bg-gradient-to-br from-violet-100 to-indigo-100">
-                    @if($relatedEvent->image && filter_var($relatedEvent->image, FILTER_VALIDATE_URL))
-                    <img src="{{ $relatedEvent->image }}" alt="{{ $relatedEvent->title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
-                    @elseif($relatedEvent->image && file_exists(public_path($relatedEvent->image)))
-                    <img src="{{ asset($relatedEvent->image) }}" alt="{{ $relatedEvent->title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                    @if($relatedEvent->image_url)
+                    <img src="{{ $relatedEvent->image_url }}" alt="{{ $relatedEvent->title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
                     @else
                     <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-violet-200 to-indigo-200">
                         <svg class="w-12 h-12 text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">

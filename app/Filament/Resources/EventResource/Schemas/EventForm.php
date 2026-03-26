@@ -74,7 +74,15 @@ class EventForm
                         '1:1',
                     ])
                     ->required()
-                    ->helperText('Upload thumbnail untuk event ini')
+                    ->helperText('Upload thumbnail untuk event ini. File akan disimpan di public/assets/images/events/')
+                    ->afterStateUpdated(function ($state, $record) {
+                        if ($state && $record) {
+                            // Get the file path
+                            $filePath = $state->getPath();
+                            // Store the full path in the database
+                            $record->update(['image' => $filePath]);
+                        }
+                    })
                     ->columnSpanFull(),
             ])
             ->columns(2)

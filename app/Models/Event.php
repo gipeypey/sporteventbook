@@ -42,6 +42,58 @@ class Event extends Model
         return $this->date ?? $this->attributes['start_date'] ?? null;
     }
 
+    /**
+     * Get the image URL attribute
+     */
+    public function getImageUrlAttribute(): ?string
+    {
+        if (!$this->image) {
+            return null;
+        }
+
+        // Check if it's a full URL
+        if (filter_var($this->image, FILTER_VALIDATE_URL)) {
+            return $this->image;
+        }
+
+        // Check if path already includes assets/images
+        if (str_contains($this->image, 'assets/images')) {
+            $fullPath = public_path($this->image);
+            if (file_exists($fullPath)) {
+                return asset($this->image);
+            }
+        }
+
+        // Check if it's just the filename (stored in events directory)
+        $eventsPath = public_path('assets/images/events/' . $this->image);
+        if (file_exists($eventsPath)) {
+            return asset('assets/images/events/' . $this->image);
+        }
+
+        // Check with leading slash or direct path
+        $directPath = public_path($this->image);
+        if (file_exists($directPath)) {
+            return asset($this->image);
+        }
+
+        // Fallback: try to find any matching file
+        $possiblePaths = [
+            'assets/images/events/' . $this->image,
+            'assets/images/' . $this->image,
+            'events/' . $this->image,
+            $this->image,
+            ltrim($this->image, '/'),
+        ];
+
+        foreach ($possiblePaths as $path) {
+            if (file_exists(public_path($path))) {
+                return asset($path);
+            }
+        }
+
+        return null;
+    }
+
     public function scopeSearch($query, $search)
     {
         return $query->where(function ($query) use ($search) {
