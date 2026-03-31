@@ -1,0 +1,84 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sporteventbook-ingress
+  namespace: sporteventbook
+  labels:
+    app: sporteventbook
+  annotations:
+    # Traefik specific
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.middlewares: default-redirect-https@kubernetescrd
+    
+    # SSL/TLS (jika menggunakan cert-manager)
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+    
+    # HSTS
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    
+    # Rate limiting (optional)
+    # traefik.ingress.kubernetes.io/router.rate-limit: "100"
+spec:
+  rules:
+  - host: sport.bercalab.my.id
+    http:
+      paths:
+      # API routes
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-service
+            port:
+              number: 80
+      
+      # Filament admin routes
+      - path: /admin
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-service
+            port:
+              number: 80
+      
+      # Main application
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nginx-service
+            port:
+              number: 80
+  
+  # TLS Configuration
+  tls:
+  - hosts:
+    - sport.bercalab.my.id
+    secretName: sporteventbook-tls
+---
+# HTTP to HTTPS Redirect Middleware (Traefik)
+# Uncomment jika menggunakan Traefik v2+
+# apiVersion: traefik.io/v1alpha1
+# kind: Middleware
+# metadata:
+#   name: redirect-https
+#   namespace: default
+# spec:
+#   redirectScheme:
+#     scheme: https
+#     permanent: true
+---
+# TLS Option for better security
+apiVersion: traefik.io/v1alpha1
+kind: TLSOption
+metadata:
+  name: default-tls-option
+  namespace: sporteventbook
+spec:
+  minVersion: VersionTLS12
+  cipherSuites:
+    - TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+    - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+    - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+    - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256

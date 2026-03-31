@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sporteventbook
+  labels:
+    name: sporteventbook
+    environment: production
+---
+# Resource Quota (Optional - untuk limitasi resource)
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: sporteventbook-quota
+  namespace: sporteventbook
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.cpu: "8"
+    limits.memory: 16Gi
+    pods: "20"
+    services: "10"
+    secrets: "10"
+    configmaps: "10"
+---
+# Limit Range (Optional - untuk default limits per container)
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: sporteventbook-limits
+  namespace: sporteventbook
+spec:
+  limits:
+  - type: Container
+    default:
+      cpu: "500m"
+      memory: "512Mi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "128Mi"
+    max:
+      cpu: "2"
+      memory: "4Gi"
+    min:
+      cpu: "50m"
+      memory: "64Mi"
