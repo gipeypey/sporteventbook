@@ -4,7 +4,8 @@
 
 | File | Description |
 |------|-------------|
-| `deploy-ndb.sh` | Main deployment script for Nutanix Kubernetes Platform with NDB MySQL |
+| `all-in-one.yaml` | **Complete manifest for DKP Kommander dashboard deployment** |
+| `deploy-ndb.sh` | Main deployment script for CLI deployment with NDB MySQL |
 | `app-configmap-ndb.yaml` | ConfigMap for application configuration |
 | `app-secret-ndb.yaml` | Secret for sensitive data (DB credentials, API keys) |
 | `app-deployment.yaml` | Laravel application deployment |
@@ -19,12 +20,58 @@
 
 ## 🚀 Pre-requisites
 
-1. Access to Nutanix Kubernetes Platform
+1. Access to Nutanix Kubernetes Platform (DKP Kommander)
 2. Docker installed for building images
 3. Access to Harbor registry (`registry.bercalab.my.id`)
 4. NDB MySQL instance created and connection details available
 
-## 📋 Deployment Steps
+---
+
+## 📋 Option 1: Deploy via DKP Kommander Dashboard (Recommended)
+
+### Step 1: Prepare Manifests
+
+1. Open `k8s/all-in-one.yaml`
+2. Update the following values:
+   - **ConfigMap**: DB_HOST, DB_DATABASE, DB_USERNAME
+   - **Secret (app-secret)**: APP_KEY, DB_PASSWORD, MIDTRANS keys
+   - **Secret (harbor-secret)**: Harbor password
+   - **nginx-service**: Update LoadBalancer IP if needed
+
+### Step 2: Delete Old Namespace (if exists)
+
+From Kommander kubectl shell or local terminal:
+```bash
+kubectl delete namespace sporteventbook --force --grace-period=0
+```
+
+### Step 3: Deploy via Dashboard
+
+1. Login to **DKP Kommander Dashboard**
+2. Navigate to **Applications** → **Deploy Application**
+3. Select **"Upload YAML"** or **"Paste YAML"**
+4. Upload/paste entire content of `k8s/all-in-one.yaml`
+5. Click **Deploy**
+
+### Step 4: Verify Deployment
+
+From Kommander UI or kubectl:
+```bash
+kubectl get pods -n sporteventbook
+kubectl get pvc -n sporteventbook
+kubectl get svc -n sporteventbook
+```
+
+### Step 5: Run Migrations
+
+From Kommander kubectl shell:
+```bash
+kubectl exec -it deployment/laravel-app -n sporteventbook -- php artisan migrate --force
+```
+
+---
+
+## 📋 Option 2: Deploy via CLI
 
 ### 1. Delete Old Namespace (if exists)
 
