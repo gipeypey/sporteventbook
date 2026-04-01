@@ -143,14 +143,22 @@ kubectl create secret docker-registry harbor-secret \
     --namespace=$NAMESPACE \
     --dry-run=client -o yaml | kubectl apply -f -
 
-# Step 5: Deploy Redis (Optional, untuk cache/queue)
+# Step 5: Create PersistentVolumeClaim for Storage
 echo ""
-print_status "Step 5: Deploying Redis..."
+print_status "Step 5: Creating PersistentVolumeClaim..."
+kubectl apply -f "${K8S_DIR}/app-storage-pvc.yaml" -n $NAMESPACE
+
+# Step 6: Deploy Redis (Optional, untuk cache/queue)
+echo ""
+print_status "Step 6: Deploying Redis..."
 kubectl apply -f "${K8S_DIR}/redis-deployment.yaml" -n $NAMESPACE
 
-# Step 6: Deploy Application
+# Step 7: Deploy Application
 echo ""
-print_status "Step 6: Deploying Laravel application..."
+print_status "Step 7: Deploying Laravel application..."
+
+# Create Laravel Service (for Nginx upstream)
+kubectl apply -f "${K8S_DIR}/laravel-service.yaml" -n $NAMESPACE
 
 # Create ConfigMap with NDB MySQL host
 cat <<EOF | kubectl apply -f -
@@ -184,33 +192,33 @@ EOF
 
 kubectl apply -f "${K8S_DIR}/app-deployment.yaml" -n $NAMESPACE
 
-# Step 7: Deploy Nginx
+# Step 8: Deploy Nginx
 echo ""
-print_status "Step 7: Deploying Nginx..."
+print_status "Step 8: Deploying Nginx..."
 kubectl apply -f "${K8S_DIR}/nginx-deployment.yaml" -n $NAMESPACE
 kubectl apply -f "${K8S_DIR}/nginx-service.yaml" -n $NAMESPACE
 
-# Step 8: Run Migrations
+# Step 9: Run Migrations
 echo ""
-print_status "Step 8: Running database migrations..."
+print_status "Step 9: Running database migrations..."
 kubectl apply -f "${K8S_DIR}/migration-job.yaml" -n $NAMESPACE
 
 print_status "Waiting for migration to complete..."
 kubectl wait --for=condition=complete job/migrate -n $NAMESPACE --timeout=300s || print_warning "Migration may still be running. Check with: kubectl get jobs -n $NAMESPACE"
 
-# Step 9: Deploy Queue Worker
+# Step 10: Deploy Queue Worker
 echo ""
-print_status "Step 9: Deploying queue worker..."
+print_status "Step 10: Deploying queue worker..."
 kubectl apply -f "${K8S_DIR}/queue-worker-deployment.yaml" -n $NAMESPACE
 
-# Step 10: Deploy Scheduler
+# Step 11: Deploy Scheduler
 echo ""
-print_status "Step 10: Deploying scheduler..."
+print_status "Step 11: Deploying scheduler..."
 kubectl apply -f "${K8S_DIR}/scheduler-cronjob.yaml" -n $NAMESPACE
 
-# Step 11: Verify Deployment
+# Step 12: Verify Deployment
 echo ""
-print_status "Step 11: Verifying deployment..."
+print_status "Step 12: Verifying deployment..."
 echo ""
 echo "Pods status:"
 kubectl get pods -n $NAMESPACE

@@ -7,7 +7,7 @@ data:
   APP_NAME: "SportEventBook"
   APP_ENV: "production"
   APP_DEBUG: "false"
-  APP_URL: "https://sporteventbook.your-domain.com"
+  APP_URL: "https://sport.bercalab.my.id"
   
   # Database Configuration - NDB MySQL
   DB_CONNECTION: "mysql"

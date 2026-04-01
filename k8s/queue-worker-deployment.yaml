@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: queue-worker
-        image: harbor.your-domain.com/sporteventbook/app:latest
+        image: registry.bercalab.my.id/sporteventbook/app:latest
         command:
         - php
         - artisan

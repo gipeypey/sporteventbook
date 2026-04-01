@@ -11,7 +11,7 @@ spec:
         spec:
           containers:
           - name: scheduler
-            image: harbor.your-domain.com/sporteventbook/app:latest
+            image: registry.bercalab.my.id/sporteventbook/app:latest
             command:
             - php
             - artisan
