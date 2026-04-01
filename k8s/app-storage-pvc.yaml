@@ -5,8 +5,8 @@ metadata:
   namespace: sporteventbook
 spec:
   accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
   resources:
     requests:
-      storage: 5Gi
-  storageClassName: nfs-client
+      storage: 10Gi
+  storageClassName: nutanix-volume
