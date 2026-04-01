@@ -79,15 +79,13 @@ kind: PersistentVolumeClaim
 metadata:
   name: app-storage-pvc
   namespace: sporteventbook
-  annotations:
-    csi.nutanix.com/storage-type: kVolumes
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: 10Gi
-  storageClassName: nutanix-volume
+  storageClassName: nutanix-volume-fixed
 
 ---
 # Service - Laravel FPM
