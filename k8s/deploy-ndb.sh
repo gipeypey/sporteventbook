@@ -75,6 +75,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Go to project root (parent of k8s folder)
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 
+# Save K8S folder path for later use
+K8S_DIR="$SCRIPT_DIR"
+
 cd "$PROJECT_ROOT"
 docker build -t ${HARBOR_URL}/sporteventbook/app:${IMAGE_TAG} .
 
@@ -143,7 +146,7 @@ kubectl create secret docker-registry harbor-secret \
 # Step 5: Deploy Redis (Optional, untuk cache/queue)
 echo ""
 print_status "Step 5: Deploying Redis..."
-kubectl apply -f redis-deployment.yaml -n $NAMESPACE
+kubectl apply -f "${K8S_DIR}/redis-deployment.yaml" -n $NAMESPACE
 
 # Step 6: Deploy Application
 echo ""
@@ -179,18 +182,18 @@ data:
   LOG_LEVEL: "info"
 EOF
 
-kubectl apply -f app-deployment.yaml -n $NAMESPACE
+kubectl apply -f "${K8S_DIR}/app-deployment.yaml" -n $NAMESPACE
 
 # Step 7: Deploy Nginx
 echo ""
 print_status "Step 7: Deploying Nginx..."
-kubectl apply -f nginx-deployment.yaml -n $NAMESPACE
-kubectl apply -f nginx-service.yaml -n $NAMESPACE
+kubectl apply -f "${K8S_DIR}/nginx-deployment.yaml" -n $NAMESPACE
+kubectl apply -f "${K8S_DIR}/nginx-service.yaml" -n $NAMESPACE
 
 # Step 8: Run Migrations
 echo ""
 print_status "Step 8: Running database migrations..."
-kubectl apply -f migration-job.yaml -n $NAMESPACE
+kubectl apply -f "${K8S_DIR}/migration-job.yaml" -n $NAMESPACE
 
 print_status "Waiting for migration to complete..."
 kubectl wait --for=condition=complete job/migrate -n $NAMESPACE --timeout=300s || print_warning "Migration may still be running. Check with: kubectl get jobs -n $NAMESPACE"
@@ -198,12 +201,12 @@ kubectl wait --for=condition=complete job/migrate -n $NAMESPACE --timeout=300s |
 # Step 9: Deploy Queue Worker
 echo ""
 print_status "Step 9: Deploying queue worker..."
-kubectl apply -f queue-worker-deployment.yaml -n $NAMESPACE
+kubectl apply -f "${K8S_DIR}/queue-worker-deployment.yaml" -n $NAMESPACE
 
 # Step 10: Deploy Scheduler
 echo ""
 print_status "Step 10: Deploying scheduler..."
-kubectl apply -f scheduler-cronjob.yaml -n $NAMESPACE
+kubectl apply -f "${K8S_DIR}/scheduler-cronjob.yaml" -n $NAMESPACE
 
 # Step 11: Verify Deployment
 echo ""
