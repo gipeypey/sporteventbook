@@ -6,7 +6,7 @@ metadata:
   labels:
     app: laravel
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: laravel
@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: laravel
-        image: harbor.your-domain.com/sporteventbook/app:latest
+        image: registry.bercalab.my.id/sporteventbook/app:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 9000
