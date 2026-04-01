@@ -16,40 +16,35 @@ commonLabels:
   app.kubernetes.io/managed-by: flux
 
 # Patches for environment-specific configuration
-# IMPORTANT: Update these values before committing to Git!
+# IMPORTANT: Update these values with your actual NDB MySQL details!
 patches:
-  # Patch ConfigMap with actual values
+  # Patch ConfigMap with actual NDB MySQL values
   - patch: |-
       - op: replace
         path: /data/DB_HOST
-        value: "your-ndb-mysql-host"
+        value: "192.168.2.61"        # ← GANTI: NDB MySQL Host/IP
       - op: replace
         path: /data/DB_DATABASE
-        value: "your-database-name"
+        value: "sporteventbook"      # ← GANTI: Database Name
       - op: replace
         path: /data/DB_USERNAME
-        value: "your-db-username"
+        value: "root"           # ← GANTI: DB Username
     target:
       kind: ConfigMap
       name: app-config
       version: v1
 
-  # NOTE: For secrets (DB_PASSWORD, APP_KEY, etc.), it's recommended to:
-  # 1. Create secrets manually via kubectl or DKP Kommander UI after initial deploy
-  # 2. Or use SOPS/External Secrets for GitOps security
-  # 
-  # To generate APP_KEY:
-  #   php artisan key:generate --show
-  # Then base64 encode it:
-  #   echo -n "base64:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" | base64
-  # Or use existing .env APP_KEY value directly
+  # NOTE: Secrets (DB_PASSWORD, APP_KEY, MIDTRANS_*) dibuat MANUAL setelah deploy
+  # Gunakan script: ./create-secrets.sh
+  # Atau via kubectl create secret / DKP Kommander UI
 
-  # Patch Service LoadBalancer IP (optional - remove this patch for auto-assign by MetalLB)
-  - patch: |-
-      metadata:
-        annotations:
-          metallb.universe.tf/loadBalancerIPs: "10.10.10.100"
-    target:
-      kind: Service
-      name: nginx-service
-      version: v1
+  # Patch Service LoadBalancer IP
+  # HAPUS patch ini jika ingin MetalLB auto-assign IP
+  # - patch: |-
+  #     metadata:
+  #       annotations:
+  #         metallb.universe.tf/loadBalancerIPs: "10.10.10.xxx"  # ← GANTI: Available IP dari MetalLB IPAddressPool
+  #   target:
+  #     kind: Service
+  #     name: nginx-service
+  #     version: v1
