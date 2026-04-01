@@ -282,7 +282,7 @@ metadata:
   name: nginx-service
   namespace: sporteventbook
   annotations:
-    metallb.universe.tf/loadBalancerIPs: "10.10.10.100"
+    metallb.universe.tf/loadBalancerIPs: "192.168.2.118"
 spec:
   type: LoadBalancer
   ports:

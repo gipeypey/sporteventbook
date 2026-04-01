@@ -1,0 +1,13 @@
+# Ignore sensitive files that should not be committed
+*-secret*.yaml
+*-secrets.yaml
+secrets.yaml
+*.secret.yaml
+
+# Ignore local overrides with actual values
+patches/
+overrides/
+
+# Keep the main manifests but ignore secret templates with real values
+!all-in-one.yaml
+!kustomization.yaml

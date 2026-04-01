@@ -27,7 +27,72 @@
 
 ---
 
-## 📋 Option 1: Deploy via DKP Kommander Dashboard (Recommended)
+## 📋 Option 1: Deploy via GitOps (Recommended for Production)
+
+### Step 1: Fill GitOps Repository Form
+
+Di DKP Kommander Dashboard, saat menambahkan GitOps Repository:
+
+| Field | Isi |
+|-------|-----|
+| **Name** | `sporteventbook` |
+| **Repository URL** | `https://github.com/gipeypey/sporteventbook.git` |
+| **Git Ref Type** | `Branch` |
+| **Branch Name** | `main` (atau nama branch Anda) |
+| **Path** | `k8s` |
+| **Primary Git Secret** | `None` (jika repo public) |
+
+### Step 2: Update Values di kustomization.yaml
+
+Edit `k8s/kustomization.yaml` dengan nilai sebenarnya:
+
+```yaml
+patches:
+  - patch: |-
+      - op: replace
+        path: /data/DB_HOST
+        value: "mysql-host.example.com"  # ← NDB MySQL host
+      - op: replace
+        path: /data/DB_DATABASE
+        value: "sporteventbook"          # ← Database name
+      - op: replace
+        path: /data/DB_USERNAME
+        value: "sportuser"               # ← DB username
+    target:
+      kind: ConfigMap
+      name: app-config
+
+  - patch: |-
+      - op: replace
+        path: /stringData/DB_PASSWORD
+        value: "your-actual-password"    # ← DB password
+      - op: replace
+        path: /stringData/APP_KEY
+        value: "base64:your-app-key"     # ← php artisan key:generate
+    target:
+      kind: Secret
+      name: app-secret
+```
+
+### Step 3: Commit dan Push
+
+```bash
+git add k8s/
+git commit -m "Add k8s manifests for GitOps deployment"
+git push origin main
+```
+
+### Step 4: Flux Akan Auto-Deploy
+
+Flux CD akan otomatis sync dalam 1-2 menit. Check status:
+```bash
+kubectl get kustomizations -A
+kubectl get pods -n sporteventbook
+```
+
+---
+
+## 📋 Option 2: Deploy via Dashboard (Manual YAML Upload)
 
 ### Step 1: Prepare Manifests
 
@@ -71,7 +136,7 @@ kubectl exec -it deployment/laravel-app -n sporteventbook -- php artisan migrate
 
 ---
 
-## 📋 Option 2: Deploy via CLI
+## 📋 Option 3: Deploy via CLI
 
 ### 1. Delete Old Namespace (if exists)
 

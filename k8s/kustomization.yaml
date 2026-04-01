@@ -1,0 +1,58 @@
+# Kustomization for Flux CD GitOps
+# DKP Kommander will use this file to deploy resources
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: sporteventbook
+
+# Resources to deploy
+resources:
+  - all-in-one.yaml
+
+# Common labels to apply to all resources
+commonLabels:
+  app.kubernetes.io/name: sporteventbook
+  app.kubernetes.io/managed-by: flux
+
+# Patches for environment-specific configuration
+# Uncomment and modify as needed
+patches:
+  # Patch ConfigMap with actual values
+  - patch: |-
+      - op: replace
+        path: /data/DB_HOST
+        value: "192.168.2.61"
+      - op: replace
+        path: /data/DB_DATABASE
+        value: "sporteventbook"
+      - op: replace
+        path: /data/DB_USERNAME
+        value: "root"
+    target:
+      kind: ConfigMap
+      name: app-config
+      version: v1
+
+  # Patch Secret with actual values (use SOPS or external-secrets for production)
+  - patch: |-
+      - op: replace
+        path: /stringData/DB_PASSWORD
+        value: "P@ssw0rd"
+      - op: replace
+        path: /stringData/APP_KEY
+        value: "base64:your-app-key"
+    target:
+      kind: Secret
+      name: app-secret
+      version: v1
+
+  # Patch Service LoadBalancer IP (optional - remove annotation for auto-assign)
+  - patch: |-
+      metadata:
+        annotations:
+          metallb.universe.tf/loadBalancerIPs: "192.168.2.118"
+    target:
+      kind: Service
+      name: nginx-service
+      version: v1
