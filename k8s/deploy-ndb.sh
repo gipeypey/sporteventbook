@@ -214,17 +214,35 @@ kubectl apply -f "${K8S_DIR}/queue-worker-deployment.yaml" -n $NAMESPACE
 # Step 11: Deploy Scheduler
 echo ""
 print_status "Step 11: Deploying scheduler..."
+
+# Suspend scheduler first to prevent job accumulation during deploy
+kubectl patch cronjob laravel-scheduler -n $NAMESPACE -p '{"spec": {"suspend": true}}' --dry-run=client -o yaml | kubectl apply -f - 2>/dev/null || true
+
+# Delete old scheduler pods
+kubectl delete pod -n $NAMESPACE -l app=laravel-scheduler --force --grace-period=0 2>/dev/null || true
+
 kubectl apply -f "${K8S_DIR}/scheduler-cronjob.yaml" -n $NAMESPACE
 
 # Step 12: Verify Deployment
 echo ""
 print_status "Step 12: Verifying deployment..."
+
+# Wait for pods to stabilize
+print_status "Waiting for pods to stabilize..."
+sleep 15
+
 echo ""
-echo "Pods status:"
+echo "=== Pods Status ==="
 kubectl get pods -n $NAMESPACE
 echo ""
-echo "Services:"
+echo "=== Services Status ==="
 kubectl get svc -n $NAMESPACE
+echo ""
+echo "=== PVC Status ==="
+kubectl get pvc -n $NAMESPACE 2>/dev/null || echo "No PVCs found"
+echo ""
+echo "=== Jobs Status ==="
+kubectl get jobs -n $NAMESPACE 2>/dev/null || echo "No jobs found"
 echo ""
 
 # Get LoadBalancer IP
@@ -232,11 +250,20 @@ LB_IP=$(kubectl get svc nginx-service -n $NAMESPACE -o jsonpath='{.status.loadBa
 if [ ! -z "$LB_IP" ] && [ "$LB_IP" != "pending" ]; then
     print_status "Application is accessible at: http://${LB_IP}"
 else
-    print_status "LoadBalancer IP is pending. Check with: kubectl get svc -n $NAMESPACE"
+    print_warning "LoadBalancer IP is pending. Check with: kubectl get svc -n $NAMESPACE"
+fi
+
+# Check for pods with errors
+ERROR_PODS=$(kubectl get pods -n $NAMESPACE --field-selector=status.phase!=Running,status.phase!=Succeeded --no-headers 2>/dev/null | wc -l)
+if [ "$ERROR_PODS" -gt 0 ]; then
+    echo ""
+    print_warning "Found $ERROR_PODS pods not in Running state"
+    print_warning "Run cleanup script if there are many failed pods:"
+    echo "  ./cleanup-ndb.sh"
 fi
 
 echo ""
-print_status "Deployment completed successfully!"
+print_status "Deployment completed!"
 echo ""
 echo "========================================"
 echo "  Deployment Summary"
@@ -246,15 +273,25 @@ echo "  Namespace: ${NAMESPACE}"
 echo "  Image: ${HARBOR_URL}/sporteventbook/app:${IMAGE_TAG}"
 echo "========================================"
 echo ""
-echo "Useful commands:"
-echo "  kubectl get pods -n $NAMESPACE           # Check pod status"
-echo "  kubectl get svc -n $NAMESPACE            # Check services"
+echo "========================================"
+echo "  Useful Commands"
+echo "========================================"
+echo "  kubectl get pods -n $NAMESPACE              # Check pod status"
+echo "  kubectl get svc -n $NAMESPACE               # Check services"
 echo "  kubectl logs -f deployment/laravel-app -n $NAMESPACE  # View app logs"
 echo "  kubectl describe pod <pod-name> -n $NAMESPACE  # Debug pod issues"
-echo "  kubectl logs job/migrate -n $NAMESPACE   # Check migration logs"
+echo "  kubectl logs job/migrate -n $NAMESPACE      # Check migration logs"
 echo ""
-echo "To test database connection:"
+echo "  # Cleanup failed pods:"
+echo "  ./cleanup-ndb.sh"
+echo ""
+echo "  # Resume scheduler when ready:"
+echo "  kubectl patch cronjob laravel-scheduler -n $NAMESPACE -p '{\"spec\": {\"suspend\": false}}'"
+echo ""
+echo "  # Test database connection:"
 echo "  kubectl run db-test --image=mysql:8.0 --rm -it -n $NAMESPACE \\"
 echo "    --env=\"MYSQL_PWD=${NDB_PASSWORD}\" \\"
 echo "    -- mysql -h ${NDB_HOST} -u ${NDB_USERNAME} -D ${NDB_DATABASE} -e \"SELECT 1;\""
+echo ""
+echo "========================================"
 echo ""

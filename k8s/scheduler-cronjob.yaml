@@ -5,6 +5,9 @@ metadata:
   namespace: sporteventbook
 spec:
   schedule: "* * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
   jobTemplate:
     spec:
       template:
