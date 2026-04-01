@@ -3,6 +3,10 @@ kind: PersistentVolumeClaim
 metadata:
   name: app-storage-pvc
   namespace: sporteventbook
+  annotations:
+    # Nutanix CSI requires StorageType parameter
+    # kVolumes = Volume Group, kAppVolumes = App Volume
+    csi.nutanix.com/storage-type: kVolumes
 spec:
   accessModes:
     - ReadWriteOnce
