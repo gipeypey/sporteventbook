@@ -7,7 +7,7 @@ set -e
 
 # Configuration
 NAMESPACE="sporteventbook"
-HARBOR_URL="harbor.your-domain.com"
+HARBOR_URL="registry.bercalab.my.id"
 HARBOR_USERNAME="admin"
 IMAGE_TAG="v1.0.0"
 DOMAIN="sport.bercalab.my.id"
