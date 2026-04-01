@@ -16,42 +16,39 @@ commonLabels:
   app.kubernetes.io/managed-by: flux
 
 # Patches for environment-specific configuration
-# Uncomment and modify as needed
+# IMPORTANT: Update these values before committing to Git!
 patches:
   # Patch ConfigMap with actual values
   - patch: |-
       - op: replace
         path: /data/DB_HOST
-        value: "192.168.2.61"
+        value: "your-ndb-mysql-host"
       - op: replace
         path: /data/DB_DATABASE
-        value: "sporteventbook"
+        value: "your-database-name"
       - op: replace
         path: /data/DB_USERNAME
-        value: "root"
+        value: "your-db-username"
     target:
       kind: ConfigMap
       name: app-config
       version: v1
 
-  # Patch Secret with actual values (use SOPS or external-secrets for production)
-  - patch: |-
-      - op: replace
-        path: /stringData/DB_PASSWORD
-        value: "P@ssw0rd"
-      - op: replace
-        path: /stringData/APP_KEY
-        value: "base64:your-app-key"
-    target:
-      kind: Secret
-      name: app-secret
-      version: v1
+  # NOTE: For secrets (DB_PASSWORD, APP_KEY, etc.), it's recommended to:
+  # 1. Create secrets manually via kubectl or DKP Kommander UI after initial deploy
+  # 2. Or use SOPS/External Secrets for GitOps security
+  # 
+  # To generate APP_KEY:
+  #   php artisan key:generate --show
+  # Then base64 encode it:
+  #   echo -n "base64:xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" | base64
+  # Or use existing .env APP_KEY value directly
 
-  # Patch Service LoadBalancer IP (optional - remove annotation for auto-assign)
+  # Patch Service LoadBalancer IP (optional - remove this patch for auto-assign by MetalLB)
   - patch: |-
       metadata:
         annotations:
-          metallb.universe.tf/loadBalancerIPs: "192.168.2.118"
+          metallb.universe.tf/loadBalancerIPs: "10.10.10.100"
     target:
       kind: Service
       name: nginx-service

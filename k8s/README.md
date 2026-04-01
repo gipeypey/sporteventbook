@@ -90,6 +90,46 @@ kubectl get kustomizations -A
 kubectl get pods -n sporteventbook
 ```
 
+### Step 5: Create Secrets (Setelah Deploy)
+
+**Opsi A: Gunakan Script**
+```bash
+cd k8s
+chmod +x create-secrets.sh
+./create-secrets.sh
+```
+
+Script akan:
+- Generate APP_KEY otomatis
+- Prompt untuk DB_PASSWORD
+- Prompt untuk MIDTRANS keys (optional)
+- Create Kubernetes Secret
+
+**Opsi B: Manual dengan kubectl**
+```bash
+# Generate APP_KEY
+php artisan key:generate --show
+
+# Create secret
+kubectl create secret generic app-secret -n sporteventbook \
+    --from-literal=APP_KEY="base64:xxxxxxxxx" \
+    --from-literal=DB_PASSWORD="your-password" \
+    --from-literal=MIDTRANS_SERVER_KEY="xxx" \
+    --from-literal=MIDTRANS_CLIENT_KEY="xxx"
+```
+
+**Opsi C: Via DKP Kommander UI**
+1. Navigate ke **Secrets** di namespace sporteventbook
+2. Click **Create Secret**
+3. Tambah keys: APP_KEY, DB_PASSWORD, MIDTRANS_*
+4. Save
+
+### Step 6: Restart Pods
+
+```bash
+kubectl rollout restart deployment -n sporteventbook
+```
+
 ---
 
 ## 📋 Option 2: Deploy via Dashboard (Manual YAML Upload)
