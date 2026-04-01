@@ -69,6 +69,13 @@ print_status "Namespace '$NAMESPACE' created/verified"
 # Step 2: Build and Push Docker Image
 echo ""
 print_status "Step 2: Building Docker image..."
+
+# Get the directory where the script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Go to project root (parent of k8s folder)
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+cd "$PROJECT_ROOT"
 docker build -t ${HARBOR_URL}/sporteventbook/app:${IMAGE_TAG} .
 
 print_status "Logging in to Harbor Registry..."
