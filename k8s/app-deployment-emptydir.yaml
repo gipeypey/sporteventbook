@@ -1,0 +1,77 @@
+# Laravel Deployment dengan EmptyDir (tanpa PVC)
+# Gunakan ini untuk testing jika PVC masih bermasalah
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: laravel-app-emptydir
+  namespace: sporteventbook
+  labels:
+    app: laravel
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: laravel-emptydir
+  template:
+    metadata:
+      labels:
+        app: laravel-emptydir
+    spec:
+      containers:
+      - name: laravel
+        image: registry.bercalab.my.id/sporteventbook/app:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 9000
+          name: fpm
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: app-secret
+        env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: app-secret
+              key: DB_PASSWORD
+        volumeMounts:
+        - name: storage-volume
+          mountPath: /var/www/html/storage
+        - name: bootstrap-cache
+          mountPath: /var/www/html/bootstrap/cache
+        - name: sqlite-data
+          mountPath: /var/www/html/database
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: storage-volume
+        emptyDir: {}
+      - name: bootstrap-cache
+        emptyDir: {}
+      - name: sqlite-data
+        emptyDir: {}
+      imagePullSecrets:
+      - name: harbor-secret
+
+---
+# Service untuk deployment baru
+apiVersion: v1
+kind: Service
+metadata:
+  name: laravel-app-emptydir
+  namespace: sporteventbook
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9000
+    targetPort: 9000
+    name: fpm
+  selector:
+    app: laravel-emptydir

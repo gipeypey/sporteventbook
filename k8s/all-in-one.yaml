@@ -206,6 +206,7 @@ spec:
           subPath: default.conf
         - name: nginx-html
           mountPath: /usr/share/nginx/html
+          readOnly: true
         resources:
           requests:
             memory: "64Mi"
@@ -215,13 +216,13 @@ spec:
             cpu: "100m"
         livenessProbe:
           httpGet:
-            path: /
+            path: /healthz
             port: 80
           initialDelaySeconds: 10
           periodSeconds: 10
         readinessProbe:
           httpGet:
-            path: /
+            path: /healthz
             port: 80
           initialDelaySeconds: 5
           periodSeconds: 5
@@ -230,9 +231,22 @@ spec:
         configMap:
           name: nginx-config
       - name: nginx-html
-        emptyDir: {}
+        configMap:
+          name: nginx-html
       imagePullSecrets:
       - name: harbor-secret
+
+---
+# ConfigMap - Nginx HTML (index.php placeholder)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-html
+  namespace: sporteventbook
+data:
+  index.php: |
+    <?php
+    phpinfo();
 
 ---
 # ConfigMap - Nginx Configuration
