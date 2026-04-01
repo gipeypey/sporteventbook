@@ -69,12 +69,28 @@ print_status "Namespace '$NAMESPACE' created/verified"
 # Step 2: Build and Push Docker Image
 echo ""
 print_status "Step 2: Building Docker image..."
+
+# Get the directory where the script is located
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Go to project root (parent of k8s folder)
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+cd "$PROJECT_ROOT"
 docker build -t ${HARBOR_URL}/sporteventbook/app:${IMAGE_TAG} .
 
 print_status "Logging in to Harbor Registry..."
 read -sp "Enter Harbor password: " HARBOR_PASSWORD
 echo ""
-docker login ${HARBOR_URL} -u ${HARBOR_USERNAME} -p "${HARBOR_PASSWORD}"
+
+# Try login with password-stdin (more secure)
+# Note: If you get TLS certificate error, add registry to insecure-registries in /etc/docker/daemon.json
+echo "${HARBOR_PASSWORD}" | docker login ${HARBOR_URL} -u ${HARBOR_USERNAME} --password-stdin 2>&1 || {
+    print_warning "Docker login failed. This may be due to TLS certificate issues."
+    print_warning "To fix this, add to /etc/docker/daemon.json:"
+    echo '{"insecure-registries": ["registry.bercalab.my.id"]}'
+    print_warning "Then run: sudo systemctl restart docker"
+    exit 1
+}
 
 print_status "Pushing image to Harbor..."
 docker push ${HARBOR_URL}/sporteventbook/app:${IMAGE_TAG}
