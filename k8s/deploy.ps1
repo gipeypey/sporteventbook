@@ -107,7 +107,7 @@ try {
     }
     
     Print-Status "Building Docker image..."
-    docker build -t "$HARBOR_URL/sporteventbook/app:$IMAGE_TAG" "../../"
+    docker build -t "$HARBOR_URL/sporteventbook/app:$IMAGE_TAG" "../"
     if ($LASTEXITCODE -ne 0) {
         Print-Error "Failed to build Docker image"
         exit 1
