@@ -35,6 +35,7 @@ data:
   DB_DATABASE: "sporteventbook"
   DB_USERNAME: "root"
   
+  CACHE_STORE: "redis"
   CACHE_DRIVER: "redis"
   QUEUE_CONNECTION: "redis"
   SESSION_DRIVER: "redis"
