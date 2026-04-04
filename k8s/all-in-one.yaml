@@ -154,17 +154,13 @@ spec:
             memory: "512Mi"
             cpu: "500m"
         livenessProbe:
-          httpGet:
-            path: /
-            port: 80
-            scheme: HTTP
+          tcpSocket:
+            port: 9000
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
-          httpGet:
-            path: /
-            port: 80
-            scheme: HTTP
+          tcpSocket:
+            port: 9000
           initialDelaySeconds: 10
           periodSeconds: 5
       volumes:
@@ -216,14 +212,12 @@ spec:
             memory: "128Mi"
             cpu: "100m"
         livenessProbe:
-          httpGet:
-            path: /healthz
+          tcpSocket:
             port: 80
           initialDelaySeconds: 10
           periodSeconds: 10
         readinessProbe:
-          httpGet:
-            path: /healthz
+          tcpSocket:
             port: 80
           initialDelaySeconds: 5
           periodSeconds: 5
