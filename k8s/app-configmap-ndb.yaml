@@ -1,3 +1,4 @@
+cat <<EOF | kubectl apply -f -
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,22 +7,24 @@ metadata:
 data:
   APP_NAME: "SportEventBook"
   APP_ENV: "production"
-  APP_DEBUG: "false"
+  APP_DEBUG: "true"
   APP_URL: "https://sport.bercalab.my.id"
   
-  # Database Configuration - NDB MySQL
   DB_CONNECTION: "mysql"
-  DB_HOST: "ndb-mysql-ip-address"  # Ganti dengan IP MySQL dari NDB
+  DB_HOST: "192.168.2.61"    # Pastikan ini IP NDB Anda yang benar!
   DB_PORT: "3306"
   DB_DATABASE: "sporteventbook"
-  DB_USERNAME: "sporteventbook"
+  DB_USERNAME: "root"        # Ganti jika user NDB Anda bukan root
   
-  CACHE_DRIVER: "redis"
+  CACHE_STORE: "redis"       # Perbedaan Laravel 11/12 (Store, bukan Driver)
+  CACHE_DRIVER: "redis" 
   QUEUE_CONNECTION: "redis"
   SESSION_DRIVER: "redis"
   
   REDIS_HOST: "redis"
   REDIS_PORT: "6379"
+  REDIS_CLIENT: "phpredis"
   
   LOG_CHANNEL: "stderr"
   LOG_LEVEL: "info"
+EOF
