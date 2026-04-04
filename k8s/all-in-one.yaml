@@ -395,7 +395,6 @@ spec:
         - --sleep=3
         - --max-jobs=1000
         - --max-time=3600
-        - --stop-when-empty
         envFrom:
         - configMapRef:
             name: app-config
