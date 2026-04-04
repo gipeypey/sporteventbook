@@ -61,6 +61,6 @@ EXPOSE 9000
 USER laravel
 
 # Run artisan optimize
-RUN php artisan optimize
+RUN php artisan event:cache && php artisan route:cache && php artisan view:cache
 
 CMD ["php-fpm"]
