@@ -229,7 +229,7 @@ Jika PVC status `Pending`, check:
 kubectl describe pvc app-storage-pvc -n sporteventbook
 ```
 
-Pastikan annotation `csi.nutanix.com/storage-type: kVolumes` ada di PVC manifest.
+
 
 ### Pods CrashLoopBackOff
 
@@ -261,6 +261,6 @@ kubectl delete namespace sporteventbook --force --grace-period=0
 ## 📝 Notes
 
 - Storage class: `nutanix-volume` (default)
-- PVC annotation required: `csi.nutanix.com/storage-type: kVolumes`
+
 - Access mode: `ReadWriteOnce` (single node)
 - Default replicas: 1 (due to RWO storage)
