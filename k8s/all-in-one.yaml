@@ -385,13 +385,6 @@ spec:
       labels:
         app: queue-worker
     spec:
-      initContainers:
-      - name: init-storage
-        image: busybox
-        command: ['sh', '-c', 'mkdir -p /var/www/html/storage/framework/views /var/www/html/storage/framework/cache/data /var/www/html/storage/framework/sessions /var/www/html/storage/logs /var/www/html/storage/app/public && chown -R 1337:1337 /var/www/html/storage']
-        volumeMounts:
-        - name: storage-volume
-          mountPath: /var/www/html/storage
       containers:
       - name: queue-worker
         image: registry.bercalab.my.id/sporteventbook/app:latest
