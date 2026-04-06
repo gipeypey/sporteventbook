@@ -12,6 +12,8 @@ data:
     character-set-server=utf8mb4
     collation-server=utf8mb4_unicode_ci
     default-time-zone=+00:00
+    require_secure_transport=OFF
+    ssl_mode=DISABLED
     
     # Performance Settings
     max_connections=200
