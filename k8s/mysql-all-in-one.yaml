@@ -57,7 +57,7 @@ spec:
   resources:
     requests:
       storage: 10Gi
-  storageClassName: nutanix-volume
+  storageClassName: nutanix-volume-fixed
 
 ---
 # MySQL Deployment
