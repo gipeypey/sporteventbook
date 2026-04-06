@@ -8,43 +8,10 @@ namespace: sporteventbook
 
 # Resources to deploy
 resources:
-  - all-in-one.yaml
+  - mysql-all-in-one.yaml  # MySQL Database (in-cluster)
+  - all-in-one.yaml        # Laravel + Nginx + Redis (Redis included)
 
 # Common labels to apply to all resources
 commonLabels:
   app.kubernetes.io/name: sporteventbook
   app.kubernetes.io/managed-by: flux
-
-# Patches for environment-specific configuration
-# IMPORTANT: Update these values with your actual NDB MySQL details!
-patches:
-  # Patch ConfigMap with actual NDB MySQL values
-  - patch: |-
-      - op: replace
-        path: /data/DB_HOST
-        value: "192.168.2.61"        # ← GANTI: NDB MySQL Host/IP
-      - op: replace
-        path: /data/DB_DATABASE
-        value: "sporteventbook"      # ← GANTI: Database Name
-      - op: replace
-        path: /data/DB_USERNAME
-        value: "root"           # ← GANTI: DB Username
-    target:
-      kind: ConfigMap
-      name: app-config
-      version: v1
-
-  # NOTE: Secrets (DB_PASSWORD, APP_KEY, MIDTRANS_*) dibuat MANUAL setelah deploy
-  # Gunakan script: ./create-secrets.sh
-  # Atau via kubectl create secret / DKP Kommander UI
-
-  # Patch Service LoadBalancer IP
-  # HAPUS patch ini jika ingin MetalLB auto-assign IP
-  # - patch: |-
-  #     metadata:
-  #       annotations:
-  #         metallb.universe.tf/loadBalancerIPs: "10.10.10.xxx"  # ← GANTI: Available IP dari MetalLB IPAddressPool
-  #   target:
-  #     kind: Service
-  #     name: nginx-service
-  #     version: v1
