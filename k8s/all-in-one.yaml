@@ -48,7 +48,6 @@ data:
 
 ---
 # Secret - Application Secrets
-# IMPORTANT: Update with actual values before deploying!
 apiVersion: v1
 kind: Secret
 metadata:
@@ -56,7 +55,7 @@ metadata:
   namespace: sporteventbook
 type: Opaque
 stringData:
-  APP_KEY: "base64:your-app-key-here"
+  APP_KEY: "base64:nw41brbhsqho8oXRP5srV/d4p5UUjrYev+Aua5rJFXY="
   DB_PASSWORD: "Sp0rtEv3ntP@ss!"
   MIDTRANS_SERVER_KEY: "Mid-server-QO31L-owEDPoRNuWdLBOyFFx"
   MIDTRANS_CLIENT_KEY: "Mid-client-duVgQAN4ELE6SarI"
