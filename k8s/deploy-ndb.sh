@@ -98,19 +98,20 @@ echo "${HARBOR_PASSWORD}" | docker login ${HARBOR_URL} -u ${HARBOR_USERNAME} --p
 print_status "Pushing image to Harbor..."
 docker push ${HARBOR_URL}/sporteventbook/app:${IMAGE_TAG}
 
-# Step 3: Get NDB MySQL Connection Details
+# Step 3: MySQL Configuration (In-Cluster MySQL)
 echo ""
-print_status "Step 3: Configure NDB MySQL Connection..."
+print_status "Step 3: Configure In-Cluster MySQL Connection..."
 echo ""
-echo "Please enter your NDB MySQL connection details:"
-echo "(You can find these in NDB Console → Database → Your MySQL Instance)"
+echo "Using in-cluster MySQL service (mysql.sporteventbook.svc)"
 echo ""
-read -p "NDB MySQL Host/IP: " NDB_HOST
-read -p "NDB MySQL Port (default: 3306): " NDB_PORT
-NDB_PORT=${NDB_PORT:-3306}
-read -p "NDB MySQL Database Name: " NDB_DATABASE
-read -p "NDB MySQL Username: " NDB_USERNAME
-read -sp "NDB MySQL Password: " NDB_PASSWORD
+NDB_HOST="mysql"  # Kubernetes service name for in-cluster MySQL
+NDB_PORT="3306"
+read -p "MySQL Database Name (default: sporteventbook): " NDB_DATABASE
+NDB_DATABASE=${NDB_DATABASE:-sporteventbook}
+read -p "MySQL Username (default: sportuser): " NDB_USERNAME
+NDB_USERNAME=${NDB_USERNAME:-sportuser}
+read -sp "MySQL Password (default: Sp0rtEv3ntP@ss!): " NDB_PASSWORD
+NDB_PASSWORD=${NDB_PASSWORD:-Sp0rtEv3ntP@ss!}
 echo ""
 
 # Generate APP_KEY if not provided
@@ -268,7 +269,7 @@ echo ""
 echo "========================================"
 echo "  Deployment Summary"
 echo "========================================"
-echo "  Database: NDB MySQL (${NDB_HOST}:${NDB_PORT})"
+echo "  Database: In-Cluster MySQL (${NDB_HOST}:${NDB_PORT})"
 echo "  Namespace: ${NAMESPACE}"
 echo "  Image: ${HARBOR_URL}/sporteventbook/app:${IMAGE_TAG}"
 echo "========================================"
